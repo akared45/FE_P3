@@ -61,3 +61,14 @@
 }
 
 
+.intro__btns{
+    @include flex(center,center,10px);
+    width: 400px;
+    padding: 12px;
+}
+
+.intro__subBtn{
+    margin-top: 15px;
+    width: 250px;
+    padding: 12px;
+}

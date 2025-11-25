@@ -19,6 +19,11 @@ const HomePage = () => {
           "Đội ngũ bác sĩ tâm huyết, có trình độ chuyên môn cao và nhiều năm kinh nghiệm đang công tác tại các bệnh viện lớn Trung ương & Hà Nội."
         }
         img={Bs1}
+        buttons={[
+          { content: "Bác sĩ Doctor4U" },
+          { content: "Bác sĩ Hà Nội" },
+          { content: "Chuyên khoa", isPrimary: false },
+        ]}
       />
       <Introduction
         title={"Tư vấn trực tuyến"}
@@ -28,6 +33,7 @@ const HomePage = () => {
         img={Bs2}
         flexDirection={true}
         subimg={Subimg}
+        buttons={[{ content: "Các chuyên khoa", isPrimary: false }]}
       />
       <Introduction
         title={"Khám bệnh tại nhà"}
@@ -36,6 +42,7 @@ const HomePage = () => {
         }
         img={Bs3}
         flexDirection={false}
+        buttons={[{ content: "Chi tiết", isPrimary: false }]}
       />
       <Introduction
         title={"Chăm sóc bệnh mãn tính"}
@@ -45,6 +52,10 @@ const HomePage = () => {
         img={Bs4}
         flexDirection={true}
         subimg={Subimg2}
+        buttons={[
+          { content: "Liên hệ ngay" },
+          { content: "Xem thêm", isPrimary: false },
+        ]}
       />
       <Introduction
         title={"Chăm sóc doanh nghiệp"}
@@ -54,6 +65,10 @@ const HomePage = () => {
         img={Bs5}
         flexDirection={false}
         subimg={Subimg}
+        buttons={[
+          { content: "Liên hệ ngay" },
+          { content: "Xem thêm", isPrimary: false },
+        ]}
       />
     </div>
   );
