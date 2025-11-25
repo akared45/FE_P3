@@ -1,0 +1,63 @@
+@import "@styles/_variables.module.scss";
+@import "@styles/_mixins.module.scss";
+
+.introduction{
+    @include flex(space-between,center, 10px);
+    @include respond("tablet"){
+        flex-direction: column
+    }
+}
+
+.introduction__reverse{
+    @include flex(space-between, center, 10px);
+    flex-direction: row-reverse;
+    @include respond("tablet") {
+        flex-direction: column
+    }
+}
+
+.col__left {
+    width: 35%;
+    padding: 0px 12px;
+    @include respond("tablet") {
+        width: 100%;
+        
+    }
+}
+
+.intro__title{
+    color: $color-blue-dark;
+    font-size: 50px;
+    font-weight: $font-weight-normal;
+    padding: 10px 0px;
+    @include respond("tablet") {
+        font-size: 30px;
+    }
+}
+
+.intro__des{
+    font-size: 20px;
+    padding: 10px 0px;
+    color: $color-dark-blur;
+    @include respond("tablet") {
+        padding: 3px 0px;
+        font-size: 16px;
+    }
+}
+
+.intro__img{  
+    width: 878px;
+    height: 833px;
+    object-fit: contain;
+    @include respond("tablet") {
+        width: 80%;
+        height: 80%;
+    }
+}
+.intro__subimg{
+    @include respond("tablet") {
+        display: none;
+    }
+}
+
+

@@ -9,24 +9,7 @@
     margin: 0 auto;
     position: relative;
 
-    .auth__back {
-        position: absolute;
-        top: 40px;
-        left: 10px;
-        padding: 10px;
-        background-color: $color-blur;
-        border-radius: 50%;
-        transition: background-color 0.3s ease;
-
-        &:hover {
-            background-color: $color-blur-bold;
-        }
-
-        svg {
-            font-size: 30px;
-        }
-    }
-
+   
     @include respond("mobile") {
         width: 100%;
         flex-direction: column;

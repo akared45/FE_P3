@@ -1,57 +1,51 @@
 @import "@styles/_variables.module.scss";
 @import "@styles/_mixins.module.scss";
+
 .carousel {
     position: relative;
     width: 100%;
     max-width: 1905px;
-    margin: auto;
+    margin: 0 auto 30px;
     overflow: hidden;
     border-radius: 1rem;
 
     @include respond("tablet") {
-        height: 250px;
-    }
-
-    @include respond("desktop") {
-        height: 450px;
+        border-radius: 0.5rem;
     }
 
     &__slides {
         width: 100%;
         height: 640px;
         position: relative;
+
+        @include respond("tablet") {
+            height: 170px;
+        }
     }
 
     &__image {
         position: absolute;
         top: 0;
-        left: 50%;
-        transform: translateX(-50%);
+        left: 0;
         width: 100%;
-        height: 640px;
+        height: 100%;
         object-fit: cover;
-        border-radius: 12px;
+        border-radius: inherit;
         opacity: 0;
         z-index: 0;
-
-        /* quan trọng */
         transition: opacity 0.8s ease-in-out;
-   
-        @include respond("desktop") {
-            height: 170px;
-            object-fit: cover;
-        }
-    }
 
-    &__image.active {
-        opacity: 1;
-        z-index: 1;
+        &.active {
+            opacity: 1;
+            z-index: 1;
+        }
     }
 
     &__prev,
     &__next {
         position: absolute;
         top: 50%;
+        transform: translateY(-50%);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -62,43 +56,58 @@
         cursor: pointer;
         border-radius: 50%;
         font-size: 30px;
-        box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         z-index: 10;
         transition: all 0.3s ease;
-        &:hover{
+
+        &:hover {
             background-color: $color-teal;
             color: $color-white;
+            transform: translateY(-50%) scale(1.1);
         }
-        @include respond("desktop"){
-            top: 15%;
+
+        &:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        @include respond("tablet") {
             font-size: 20px;
+            padding: 8px 9px;
+            top: 50%;
         }
-     
     }
 
     &__prev {
-        left: 10px;
+        left: 20px;
+
+        @include respond("tablet") {
+            left: 10px;
+        }
     }
 
     &__next {
-        right: 10px;
+        right: 20px;
+
+        @include respond("tablet") {
+            right: 10px;
+        }
     }
 
     &__dots {
         position: absolute;
-        bottom: 15px;
+        bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        padding: 5px 18px;
         display: flex;
-        gap: 0.5rem;
+        gap: 8px;
+        padding: 8px 16px;
         background-color: $color-blur;
-        border-radius: 12px;
+        border-radius: 20px;
         z-index: 10;
-        @include respond("desktop"){
-           display: none; 
+
+        @include respond("tablet") {
+            display: none;
         }
-    
     }
 
     &__dot {
@@ -107,9 +116,27 @@
         background: $color-blue-dark;
         border-radius: 50%;
         cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: scale(1.2);
+        }
+
+        &.active {
+            background: $color-teal;
+            transform: scale(1.2);
+        }
     }
 
-    &__dot.active {
-        background: $color-teal;
+    &__srOnly {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
     }
 }
