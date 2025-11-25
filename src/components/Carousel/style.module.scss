@@ -1,0 +1,94 @@
+@import "@styles/_variables.module.scss";
+
+.carousel {
+    position: relative;
+    width: 100%;
+    max-width: 1905px;
+    margin: auto;
+    overflow: hidden;
+    border-radius: 1rem;
+
+    &__slides {
+        width: 100%;
+        height: 640px;
+        position: relative;
+    }
+
+    &__image {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        height: 640px;
+        object-fit: cover;
+        border-radius: 12px;
+
+        opacity: 0;
+        z-index: 0;
+
+        /* quan trọng */
+        transition: opacity 0.8s ease-in-out;
+    }
+
+    &__image.active {
+        opacity: 1;
+        z-index: 1;
+    }
+
+    &__prev,
+    &__next {
+        position: absolute;
+        top: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: $color-white;
+        color: $color-teal;
+        border: none;
+        padding: 10px 11px;
+        cursor: pointer;
+        border-radius: 50%;
+        font-size: 30px;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        z-index: 10;
+        transition: all 0.3s ease;
+        &:hover{
+            background-color: $color-teal;
+            color: $color-white;
+        }
+    }
+
+    &__prev {
+        left: 10px;
+    }
+
+    &__next {
+        right: 10px;
+    }
+
+    &__dots {
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 5px 18px;
+        display: flex;
+        gap: 0.5rem;
+        background-color: $color-blur;
+        border-radius: 12px;
+        z-index: 10;
+    }
+
+    &__dot {
+        width: 12px;
+        height: 12px;
+        background: $color-blue-dark;
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    &__dot.active {
+        background: $color-teal;
+    }
+}

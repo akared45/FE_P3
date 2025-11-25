@@ -1,0 +1,40 @@
+@import "@styles/_mixins.module.scss";
+@import "@styles/_variables.module.scss";
+
+.header{
+    padding: 10px;
+}
+
+.header__container{
+    @include flex(space-between, center, 0)
+}
+
+.header__start__img{
+    width: 165px;
+    height: 75px;
+}
+
+.header__middle__nav{
+    @include flex(center, center, 15px);
+    margin: 0;
+    padding: 0;
+}
+
+.header__item{
+    list-style: none;
+}
+
+.header__link{
+    text-decoration: none;
+    padding: 10px;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $color-dark;
+    border-radius: 18px;
+    transition: all 0.3s ease;
+    &:hover{
+        background-color: $color-blur;
+        color: $color-secondary;
+        
+    }
+}

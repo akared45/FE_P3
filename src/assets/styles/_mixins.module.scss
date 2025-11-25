@@ -1,0 +1,14 @@
+@import "./breakpoints.module.scss";
+
+@mixin flex($x, $y, $gap: 0) {
+    display: flex;
+    justify-content: $x;
+    align-items: $y;
+    gap: $gap;
+}
+
+@mixin respond($device) {
+    @media (max-width: map-get($breakpoints, $device)) {
+        @content;
+    }
+}
