@@ -1,5 +1,5 @@
 @import "@styles/_variables.module.scss";
-
+@import "@styles/_mixins.module.scss";
 .carousel {
     position: relative;
     width: 100%;
@@ -7,6 +7,14 @@
     margin: auto;
     overflow: hidden;
     border-radius: 1rem;
+
+    @include respond("tablet") {
+        height: 250px;
+    }
+
+    @include respond("desktop") {
+        height: 450px;
+    }
 
     &__slides {
         width: 100%;
@@ -23,12 +31,16 @@
         height: 640px;
         object-fit: cover;
         border-radius: 12px;
-
         opacity: 0;
         z-index: 0;
 
         /* quan trọng */
         transition: opacity 0.8s ease-in-out;
+   
+        @include respond("desktop") {
+            height: 350px;
+            object-fit: cover;
+        }
     }
 
     &__image.active {
@@ -57,6 +69,11 @@
             background-color: $color-teal;
             color: $color-white;
         }
+        @include respond("desktop"){
+            top: 40%;
+            font-size: 20px;
+        }
+     
     }
 
     &__prev {
@@ -78,6 +95,10 @@
         background-color: $color-blur;
         border-radius: 12px;
         z-index: 10;
+        @include respond("desktop"){
+           display: none; 
+        }
+    
     }
 
     &__dot {

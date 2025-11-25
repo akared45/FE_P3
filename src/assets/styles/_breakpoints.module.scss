@@ -1,7 +1,7 @@
 $breakpoints: (
-    "mobile": 480px,
-    "tablet": 768px,
-    "air-ipad": 820px,
-    "laptop": 1024px,
-    "desktop": 1280px,
+  "mobile": 0px,         // mặc định mobile-first
+  "tablet": 768px,       // từ tablet dọc
+  "laptop": 1024px,      // laptop nhỏ
+  "desktop": 1280px,     // desktop
+  "wide": 1440px,        // màn hình lớn
 );
