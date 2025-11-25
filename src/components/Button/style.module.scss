@@ -1,0 +1,29 @@
+.btn {
+    width: 100%;
+    height: 38px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    transition: 0.25s ease;
+}
+
+/* Primary button */
+.btn__primary {
+    background: #4a81ff;
+    /* xanh */
+    color: #fff;
+}
+
+.btn__primary:hover {
+    background: #3c6ee0;
+}
+
+/* Outline button */
+.btn__outline {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+}

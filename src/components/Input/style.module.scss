@@ -1,0 +1,27 @@
+.input__container {
+    position: relative;
+}
+
+.inputCommon {
+    width: 100%;
+    height: 42px;
+    border-radius: 5px;
+    border: 2px solid #e6dddd;
+    outline: none;
+    padding: 10px;
+    transition: border 0.3s ease-out;
+}
+
+.inputCommon::placeholder {
+    color: #bdb5b5;
+}
+
+.inputCommon:focus {
+    border-color: #4a81ff;
+}
+
+.secret {
+    position: absolute;
+    top: 7px;
+    right: 15px;
+}

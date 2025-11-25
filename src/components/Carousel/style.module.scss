@@ -38,7 +38,7 @@
         transition: opacity 0.8s ease-in-out;
    
         @include respond("desktop") {
-            height: 350px;
+            height: 170px;
             object-fit: cover;
         }
     }
@@ -70,7 +70,7 @@
             color: $color-white;
         }
         @include respond("desktop"){
-            top: 40%;
+            top: 15%;
             font-size: 20px;
         }
      
