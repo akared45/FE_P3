@@ -10,21 +10,7 @@
     position: relative;
 
    
-    @include respond("mobile") {
-        width: 100%;
-        flex-direction: column;
-        padding: 0 16px;
-    }
 
-    @include respond("tablet") {
-        width: 100%;
-        flex-direction: column;
-    }
-
-    @include respond("air-ipad") {
-        width: 100%;
-        flex-direction: column;
-    }
 
     &__illustration {
         width: 566px;
@@ -34,12 +20,7 @@
         justify-content: center;
         align-items: center;
 
-        @include respond("mobile") {
-            width: 100%;
-            height: auto;
-            display: flex;
-            justify-content: center;
-        }
+      
 
         img {
             width: 100%;
@@ -57,9 +38,7 @@
             flex-direction: column;
             gap: 20px;
 
-            @include respond("mobile") {
-                padding: 0px 12px;
-            }
+         
 
             .auth__social {
                 display: flex;

@@ -10,16 +10,11 @@
     background-color: #fff;
     z-index: 1000; 
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    @include respond("tablet") {
-        padding: 20px 10px
-    }
+
 }
 
 .header__middle{
     @include flex(center,center,0px);
-    @include respond("tablet"){
-        display: none;
-    }
 
 }
 
@@ -31,10 +26,7 @@
 .header__start__img{
     width: 165px;
     height: 75px;
-    @include respond("desktop"){
-        width: 130px;
-        height: 45px
-    }
+
 }
 
 .header__middle__nav{
@@ -50,9 +42,7 @@
 
 .header__end{
     @include flex(center, center, 10px);
-    @include respond("tablet"){
-        display: none
-    }
+ 
 }
 
 .mobile__menu{
@@ -64,9 +54,7 @@
     svg{
         font-size: $font-size-xl;
     }
-    @include respond("tablet"){
-        display: flex;
-    }
+
 
 }
 
@@ -85,10 +73,7 @@
         color: $color-secondary;
         
     }
-    @include respond("laptop"){
-        font-size: $font-size-md-mobile;
-        text-align: start;
-    }
+
 
 }
 
