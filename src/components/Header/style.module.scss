@@ -42,6 +42,7 @@
 
 .header__end{
     @include flex(center, center, 10px);
+  
  
 }
 
@@ -54,8 +55,6 @@
     svg{
         font-size: $font-size-xl;
     }
-
-
 }
 
 .header__link{
@@ -71,10 +70,7 @@
     &:hover{
         background-color: $color-blur;
         color: $color-secondary;
-        
     }
-
-
 }
 
 .header__menu__mobile{
@@ -89,3 +85,80 @@
     padding: 8px;
 }
 
+.header__contact{
+    color: #00b5f1;
+    font-size: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+
+    &:hover{
+        background-color: #00b5f1;
+        color: white;
+    }
+}
+
+.header__language{
+    position: relative;
+    .header__select__lan{
+        display: flex;
+        align-items: center;
+        padding: 0px 4px;
+        border-radius: 5px;
+    }
+    cursor: pointer;
+    svg{
+        width: 20px;
+        height: 20px;
+    }
+    .dropdown {
+        position: absolute;
+        left: 0;
+        top: 110%;
+        width: 150px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: 0.25s ease;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    &:hover .dropdown {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+}
+
+.header__country__img{
+    width: 30px;
+    height: 30px;
+}
+.item{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px;
+    &:hover{
+        background-color: $color-blur;
+    }
+    p{
+        font-size: 16px;
+        font-weight: 600;
+    }
+}
+
+.item__img{
+    width: 30px;
+    height: 30px;
+}
+
+
+ 
