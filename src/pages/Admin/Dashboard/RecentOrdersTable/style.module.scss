@@ -1,0 +1,58 @@
+@import "@styles/_variables.module.scss";
+
+.tableWrapper {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+
+    h3 {
+        font-size: 18px;
+        font-weight: 600;
+    }
+}
+
+.addBtn {
+    background: $color-secondary;
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:hover {
+        background: $color-secondary;
+    }
+}
+
+/* Status badges */
+.completed {
+    background: #d4f7e2;
+    color: #1ea95c;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.pending {
+    background: #fff1c2;
+    color: #cd9b00;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.cancelled {
+    background: #ffd6d6;
+    color: #d43c3c;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}

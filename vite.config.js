@@ -17,6 +17,11 @@ export default defineConfig({
       "@pages": path.resolve(__dirname, "src/pages"),
       "@styles": path.resolve(__dirname, "src/assets/styles"),
       "@images": path.resolve(__dirname, "src/assets/images"),
+<<<<<<< HEAD
+=======
+      "@services": path.resolve(__dirname, "src/services"),
+      "@utils": path.resolve(__dirname, "src/utils"),
+>>>>>>> master
     },
   },
 });
