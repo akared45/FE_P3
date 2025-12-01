@@ -1,5 +1,9 @@
 import axios from "axios";
-import { getAccessToken, setAccessToken, clearAccessToken } from "../utils/authMemory";
+import {
+  getAccessToken,
+  setAccessToken,
+  clearAccessToken,
+} from "../utils/authMemory";
 
 const axiosClient = axios.create({
   baseURL: "http://localhost:3000/api",
@@ -28,9 +32,11 @@ axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if ((error.response?.status === 403) &&
+    if (
+      error.response?.status === 403 &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes('/auth/refresh')) {
+      !originalRequest.url?.includes("/auth/refresh")
+    ) {
       originalRequest._retry = true;
       try {
         const res = await axiosRefresh.post("/auth/refresh");
