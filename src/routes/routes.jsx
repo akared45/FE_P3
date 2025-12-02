@@ -5,31 +5,35 @@ import Dashboard from "@pages/Admin/Dashboard/Dashboard";
 import Patients from "@pages/Admin/Patients/Patients";
 import Doctors from "@pages/Admin/Doctors/Doctors";
 import Schedule from "@pages/Admin/Schedule/Schedule";
-
 import Reports from "@pages/Admin/Reports/Reports";
 import Settings from "@pages/Admin/Settings/Settings";
 import Login from "@components/Login/Login";
 import Register from "@components/Register/Register";
+import ProtectRoutes from "./ProtectRoutes";
 const routes = [
   {
     path: "/",
-    element: ClientLayout,
+    element: <ClientLayout />,
     children: [
-      { path: "", element: HomePage },
-      { path: "dang-nhap", element: Login },
-      { path: "dang-ky", element: Register },
+      { path: "", element: <HomePage /> },
+      { path: "dang-nhap", element: <Login /> },
+      { path: "dang-ky", element: <Register /> },
     ],
   },
   {
     path: "/admin",
-    element: AdminLayout,
+    element: (
+      <ProtectRoutes>
+        <AdminLayout />
+      </ProtectRoutes>
+    ),
     children: [
-      { path: "bang-dieu-khien", element: Dashboard },
-      { path: "benh-nhan", element: Patients },
-      { path: "bac-si", element: Doctors },
-      { path: "lich-lam-viec", element: Schedule },
-      { path: "bao-cao", element: Reports },
-      { path: "cai-dat", element: Settings },
+      { path: "bang-dieu-khien", element: <Dashboard /> },
+      { path: "benh-nhan", element: <Patients /> },
+      { path: "bac-si", element: <Doctors /> },
+      { path: "lich-lam-viec", element: <Schedule /> },
+      { path: "bao-cao", element: <Reports /> },
+      { path: "cai-dat", element: <Settings /> },
     ],
   },
 ];

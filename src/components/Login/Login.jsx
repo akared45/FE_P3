@@ -1,97 +1,43 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import styles from "./style.module.scss";
 import Illustration from "@images/draw.png";
 import { FaFacebookF, FaTwitter, FaLinkedinIn } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Input from "@components/Input/Input";
 import Button from "@components/Button/Button";
-import api from "@services/api";
-import { setAccessToken } from "@utils/authMemory";
+import { useNavigate } from "react-router-dom";
 
+import { AuthContext } from "../../contexts/AuthProvider";
 const Login = () => {
   const navigate = useNavigate();
+  const { login, user } = useContext(AuthContext);
+  const [account, setAccount] = useState({ email: "", password: "" });
+  console.log(user);
 
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [loading, setLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const handleChange = (e) => {
+  const handleOnChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setAccount((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    console.log("name:", name, "value:", value);
   };
 
-  const handleTestApiCall = async () => {
-    try {
-      setIsRefreshing(true);
-      console.log(
-        "⏰ Đồng hồ về 0! Token cũ đã hết hạn. Đang gọi API /users/me để thử..."
-      );
-      const res = await api.getMe();
-      console.log("✅ API thành công! Interceptor đã hoạt động tốt.");
-      console.log("User data:", res.data);
-      setTimeLeft(10);
-    } catch (error) {
-      console.error("❌ API thất bại (Interceptor không cứu được):", error);
-      setTimeLeft(null);
-      alert("Phiên đăng nhập hết hạn hẳn.");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    if (timeLeft === null || isRefreshing) return;
-    if (timeLeft === 0) {
-      handleTestApiCall();
-      return;
-    }
-    const timerId = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(timerId);
-  }, [timeLeft, isRefreshing]);
-
-  const handleLogin = async (e) => {
+  const handleOnSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
     try {
-      const res = await api.login(form);
-      const { accessToken, expiresIn } = res.data.auth;
-      setAccessToken(accessToken);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      setTimeLeft(expiresIn);
-
-      console.log("✅ Login thành công!");
-      console.log("📨 Response headers:", res.headers);
-      console.log(
-        "🍪 Cookies sẽ được browser tự động lưu (không thấy trong JS)"
-      );
-
-      setTimeout(async () => {
-        try {
-          const userInfo = await api.getMe();
-          console.log("✅ Gọi API thành công sau login:", userInfo.data);
-        } catch (error) {
-          console.error("❌ Lỗi gọi API sau login:", error);
-        }
-      }, 1000);
-
-      alert(`Đăng nhập thành công!`);
+      const { email, password } = account;
+      const res = await login({ email, password });
+      if (res.userType === "admin") {
+        navigate("/admin");
+      } else if (res.userType === "patient") {
+        navigate("/");
+      } else {
+        navigate("/dang-nhap");
+      }
     } catch (error) {
-      console.error("❌ Login thất bại:", error);
-      alert("Sai email hoặc mật khẩu!");
-    } finally {
-      setLoading(false);
+      console.log(error);
     }
-  };
-
-  const formatTime = (seconds) => {
-    if (seconds === null) return "--:--";
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
   return (
@@ -101,50 +47,7 @@ const Login = () => {
       </div>
 
       <div className={styles.auth__content}>
-        <form className={styles.auth__form} onSubmit={handleLogin}>
-          {(timeLeft !== null || isRefreshing) && (
-            <div
-              style={{
-                marginBottom: "20px",
-                padding: "15px",
-                backgroundColor: isRefreshing ? "#fffaf0" : "#ebf8ff",
-                border: "1px solid",
-                borderColor: isRefreshing ? "#ed8936" : "#4299e1",
-                borderRadius: "8px",
-                textAlign: "center",
-                color: "#2d3748",
-              }}
-            >
-              {isRefreshing ? (
-                <div style={{ fontWeight: "bold", color: "#dd6b20" }}>
-                  🔄 Đang lấy Token mới... Vui lòng chờ...
-                </div>
-              ) : (
-                <>
-                  <div>Access Token hết hạn sau:</div>
-                  <div
-                    style={{
-                      fontSize: "2em",
-                      fontWeight: "bold",
-                      color: "#3182ce",
-                    }}
-                  >
-                    {formatTime(timeLeft)}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.8em",
-                      marginTop: "5px",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    (Sẽ tự động gia hạn khi về 00:00)
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
+        <form className={styles.auth__form} onSubmit={handleOnSubmit}>
           <div className={styles.auth__social}>
             <h3 className="m-0">Đăng nhập với</h3>
           </div>
@@ -154,16 +57,16 @@ const Login = () => {
           <Input
             placeholder="Email address"
             name="email"
-            value={form.email}
-            onChange={handleChange}
+            value={account.email}
+            onChange={handleOnChange}
           />
 
           <Input
             type="password"
             placeholder="Password"
+            value={account.password}
             name="password"
-            value={form.password}
-            onChange={handleChange}
+            onChange={handleOnChange}
           />
 
           <div className={styles.auth__actions}>
@@ -172,7 +75,7 @@ const Login = () => {
             <span className={styles.auth__forgot}>Quên mật khẩu?</span>
           </div>
 
-          <Button content={loading ? "Đang xử lý..." : "Đăng nhập"} />
+          <Button content={"Đăng nhập"} />
 
           <div className={styles.auth__register}>
             <span>Không có tài khoản?</span>

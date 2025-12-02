@@ -1,31 +1,22 @@
-import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import routes from "./routes/routes";
+import { AuthProvider } from "./contexts/AuthProvider";
+
 function App() {
   return (
-    <>
+    <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {routes.map((i, index) => {
-            const Layout = i.element;
-            return (
-              <Route key={index} path={i.path} element={<Layout />}>
-                {i.children?.map((child, index) => {
-                  const ChildComponent = child.element;
-                  return (
-                    <Route
-                      key={index}
-                      path={child.path}
-                      element={<ChildComponent />}
-                    />
-                  );
-                })}
-              </Route>
-            );
-          })}
+          {routes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element}>
+              {route.children?.map((child, idx) => (
+                <Route key={idx} path={child.path} element={child.element} />
+              ))}
+            </Route>
+          ))}
         </Routes>
       </BrowserRouter>
-    </>
+    </AuthProvider>
   );
 }
 

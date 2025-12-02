@@ -10,6 +10,7 @@ import Subimg from "@images/partern.png";
 import Subimg2 from "@images/Vector123.png";
 import Banner from "@components/Banner/Banner";
 import styles from "./style.module.scss";
+
 const HomePage = () => {
   return (
     <>
