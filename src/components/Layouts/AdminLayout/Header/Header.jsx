@@ -4,6 +4,9 @@ import { FaBell } from "react-icons/fa";
 import { AuthContext } from "@providers/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import Modal from "../../../ui/modal";
+import LogoutIcon from "@mui/icons-material/Logout";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import SearchIcon from "@mui/icons-material/Search";
 const Header = () => {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
@@ -26,7 +29,16 @@ const Header = () => {
   return (
     <header className={styles.headerWrapper}>
       <div className={styles.left}>
-        <h2 className={styles.title}>Admin Dashboard</h2>
+        <div className={styles.search}>
+          <div className={styles.search__icon}>
+            <SearchIcon />
+          </div>
+          <input
+            className={styles.search__input}
+            type="text"
+            placeholder="Search..."
+          />
+        </div>
       </div>
 
       <div className={styles.right} onClick={handleOpenOptions}>
@@ -45,8 +57,15 @@ const Header = () => {
       </div>
       {isOpen && (
         <div className={styles.options__admin}>
-          <span>Profile</span>
-          <span onClick={handleLogout}>Đăng xuất</span>
+          <div className={styles.options__item}>
+            <AccountCircleIcon />
+            <span>Profile</span>
+          </div>
+
+          <div className={styles.options__item}>
+            <LogoutIcon />
+            <span onClick={handleLogout}>Đăng xuất</span>
+          </div>
         </div>
       )}
       {openModal && (

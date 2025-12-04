@@ -37,7 +37,7 @@ export const adminApi = {
 export const patientApi = {
   async getAll() {
     const res = await axiosClient.get("/patients");
-    console.log(res);
+    console.log("res", res);
     return res;
   },
 };
