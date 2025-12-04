@@ -31,6 +31,7 @@ const routes = [
         <AdminLayout />
       </ProtectRoutes>
     ),
+
     children: [
       { path: "bang-dieu-khien", element: <Dashboard /> },
       { path: "benh-nhan", element: <Patients /> },

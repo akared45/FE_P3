@@ -1,49 +1,59 @@
 import React from "react";
 import styles from "./style.module.scss";
-import Avatar from "@mui/material/Avatar";
 import CloseIcon from "@mui/icons-material/Close";
 
 const DoctorModal = ({ data, onClose }) => {
-  console.log(data);
+  if (!data) return null;
+
+  const formatDate = (isoString) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toLocaleDateString("vi-VN");
+  };
+
+  const { fullName, bio, qualifications, specialization, workHistory } = data;
+
   return (
     <div className={styles.overlay}>
-      <section className={styles.popup__wrapper}>
-        <div className={styles.popup__close} onClick={onClose}>
-          <CloseIcon />
-        </div>
-        <div className={styles.popup__profile}>
-          <Avatar sx={{ width: 80, height: 80 }} alt="Remy Sharp" src="" />
-          <div className={styles.popup__doctor_info}>
-            <h4 className={styles.popup__doctor_name}>{data.name}</h4>
-            <p className={styles.popup__doctor_ex}>{data.expertise}</p>
+      <section className={styles.modalWrapper}>
+        <div className={styles.modalHeader}>
+          <div className={styles.modalHeaderInfo}>
+            <h4 className={styles.modalName}>{fullName}</h4>
+            <p className={styles.modalSpec}>
+              Chuyên khoa {specialization.name}
+            </p>
+          </div>
+          <div className={styles.modalClose} onClick={onClose}>
+            <CloseIcon />
           </div>
         </div>
-        <div className={styles.popup__details}>
-          <p className={styles.popup__des}>{data.description}</p>
-          <p className={styles.popup__training}>
-            <h5>Quá trình đào tạo</h5>
-            <ul>
-              {data.details.training.map((i, index) => (
-                <li key={index}>{i}</li>
-              ))}
+
+        <div className={styles.modalBody}>
+          {bio && <p className={styles.modalBio}>{bio}</p>}
+          <div className={styles.modalSection}>
+            <h5 className={styles.modalSectionTitle}>Quá trình đào tạo</h5>
+            <ul className={styles.modalList}>
+              {qualifications.map((i, index) => (
+                <li key={index}>
+                  <span>
+                    Tốt nghiệp {i.degree} tại {i.institution}
+                  </span>
+                </li>
+              )) || <li>Chưa cập nhật</li>}
             </ul>
-          </p>
-          <p className={styles.popup__work}>
-            <h5>Quá trình công tác</h5>
-            <ul>
-              {data.details.experience.map((i, index) => (
-                <li key={index}>{i}</li>
-              ))}
+          </div>
+
+          <div className={styles.modalSection}>
+            <h5 className={styles.modalSectionTitle}>Quá trình công tác</h5>
+            <ul className={styles.modalList}>
+              {workHistory?.map((i, index) => (
+                <li key={index}>
+                  {i.position} tại {i.place} từ {formatDate(i.from)} đến{" "}
+                  {i.to ? formatDate(i.to) : "nay"}
+                </li>
+              )) || <li>Chưa cập nhật</li>}
             </ul>
-          </p>
-          <p className={styles.popup__specialized}>
-            <h5>Khám, điều trị các bệnh</h5>
-            <ul>
-              {data.details.specialties.map((i, index) => (
-                <li key={index}>{i}</li>
-              ))}
-            </ul>
-          </p>
+          </div>
         </div>
       </section>
     </div>

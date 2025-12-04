@@ -1,25 +1,63 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import styles from "./style.module.scss";
 import { FaBell } from "react-icons/fa";
+import { AuthContext } from "@providers/AuthProvider";
+import { useNavigate } from "react-router-dom";
+import Modal from "../../../ui/modal";
 const Header = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
+  const [isOpen, setIsOpen] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+
+  const handleOpenOptions = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleLogout = () => {
+    setOpenModal(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    navigate("/dang-nhap");
+  };
+
   return (
     <header className={styles.headerWrapper}>
       <div className={styles.left}>
         <h2 className={styles.title}>Admin Dashboard</h2>
       </div>
 
-      <div className={styles.right}>
+      <div className={styles.right} onClick={handleOpenOptions}>
         <div className={styles.headerIcon}>
           <FaBell />
         </div>
         <div className={styles.profile}>
-          <div className={styles.avatar}>HT</div>
+          <div className={styles.avatar}>
+            <img src={user?.avatarUrl} alt="" />
+          </div>
           <div className={styles.inf}>
-            <p className={styles.info_name}>Hieu Tran</p>
-            <p className={styles.info_role}>Administartor</p>
+            <p className={styles.info_name}>{user?.fullName}</p>
+            <p className={styles.info_role}>{user?.userType}</p>
           </div>
         </div>
       </div>
+      {isOpen && (
+        <div className={styles.options__admin}>
+          <span>Profile</span>
+          <span onClick={handleLogout}>Đăng xuất</span>
+        </div>
+      )}
+      {openModal && (
+        <Modal
+          open={openModal}
+          onClose={() => setOpenModal(false)}
+          title="Đăng xuất"
+          message="Bạn có chắc chắn muốn đăng xuất không?"
+          onConfirm={confirmLogout}
+        />
+      )}
     </header>
   );
 };

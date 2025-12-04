@@ -3,7 +3,10 @@ import {
   getAccessToken,
   setAccessToken,
   clearAccessToken,
+  getRefreshToken,
+  setRefreshToken,
 } from "../utils/authMemory";
+import { refreshTokenRequest } from "./refreshToken";
 
 const axiosClient = axios.create({
   baseURL: "http://localhost:3000/api",
@@ -11,12 +14,9 @@ const axiosClient = axios.create({
   withCredentials: true,
 });
 
-const axiosRefresh = axios.create({
-  baseURL: "http://localhost:3000/api",
-  timeout: 5000,
-  withCredentials: true,
-});
-
+// ==========================
+// 1. REQUEST INTERCEPTOR
+// ==========================
 axiosClient.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
@@ -28,21 +28,25 @@ axiosClient.interceptors.request.use(
   (err) => Promise.reject(err)
 );
 
+// ==========================
+// 2. RESPONSE INTERCEPTOR
+// ==========================
 axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Chỉ xử lý lỗi 401 (token hết hạn)
     if (
-      error.response?.status === 403 &&
+      error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes("/auth/refresh")
+      !originalRequest.url.includes("/auth/refresh")
     ) {
       originalRequest._retry = true;
+
       try {
-        const res = await axiosRefresh.post("/auth/refresh");
-        const { accessToken } = res.data;
-        setAccessToken(accessToken);
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        const newTokens = await refreshTokenRequest();
+        originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
         return axiosClient(originalRequest);
       } catch (refreshError) {
         clearAccessToken();

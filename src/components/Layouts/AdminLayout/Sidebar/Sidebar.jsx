@@ -1,15 +1,11 @@
 import React from "react";
 import styles from "./style.module.scss";
 import { Link } from "react-router-dom";
-
 import { AiFillDashboard } from "react-icons/ai";
 import { FaUser } from "react-icons/fa";
 import { FaUserDoctor } from "react-icons/fa6";
-import { MdAnalytics } from "react-icons/md";
-import { BiSolidReport } from "react-icons/bi";
 import { IoMdSettings } from "react-icons/io";
 import { BsCalendarDateFill } from "react-icons/bs";
-import { BiSolidMessageRoundedDetail } from "react-icons/bi";
 
 const Sidebar = () => {
   return (
@@ -29,12 +25,6 @@ const Sidebar = () => {
             <AiFillDashboard />
           </span>
           <span>Dashboard</span>
-        </Link>
-        <Link to="chat" className={styles.navItem}>
-          <span className={styles.navIcon}>
-            <BiSolidMessageRoundedDetail />
-          </span>
-          <span>Message</span>
         </Link>
 
         <Link to="benh-nhan" className={styles.navItem}>
@@ -56,13 +46,6 @@ const Sidebar = () => {
             <BsCalendarDateFill />
           </span>
           <span>Schedule</span>
-        </Link>
-
-        <Link to="bao-cao" className={styles.navItem}>
-          <span className={styles.navIcon}>
-            <BiSolidReport />
-          </span>
-          <span>Reports</span>
         </Link>
 
         <Link to="cai-dat" className={styles.navItem}>

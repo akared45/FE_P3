@@ -1,15 +1,28 @@
 import React, { useContext, useState } from "react";
-import styles from "./style.module.scss";
-import Illustration from "@images/draw.png";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../../providers/AuthProvider";
-import Button from "../../../components/ui/Button";
-import TextFields from "../../../components/ui/TextFields";
+import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import Cookies from "js-cookie";
+import { AuthContext } from "@providers/AuthProvider";
+import { ToastContext } from "@providers/ToastProvider";
+import Button from "@components/ui/Button";
+import TextFields from "@components/ui/TextFields";
+import { authApi } from "@services/api";
+import {
+  setAccessToken,
+  getAccessToken,
+  setRefreshToken,
+  getRefreshToken,
+} from "@utils/authMemory";
+import styles from "./style.module.scss";
+import Illustration from "@images/draw.png";
 
 const Login = () => {
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { toast } = useContext(ToastContext);
+  const [loading, setLoading] = useState(false);
+
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -23,8 +36,33 @@ const Login = () => {
         .min(6, "Mật khẩu phải có ít nhất 6 kí tự")
         .required("Mật khẩu không được để trống"),
     }),
-    onSubmit: (values) => {
-      console.log(values);
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        const user = await login(values);
+        toast.success("Đăng nhập thành công");
+
+        if (user && user.userType === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+        // const { email, password } = values;
+        // const res = await authApi.login({ email, password });
+        // const { accessToken, refreshToken } = res.data.auth;
+        // const user = res.data.user;
+        // Cookies.set("user", JSON.stringify(user), { expires: 1 });
+        // setAccessToken(accessToken);
+        // setRefreshToken(refreshToken);
+        // console.log("đã lưu actok", getAccessToken());
+        // console.log("đã lưu rftoken", getRefreshToken());
+        // toast.success("Đăng nhập thành công");
+      } catch (err) {
+        console.log(err);
+        toast.error("Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.");
+      } finally {
+        setLoading(false);
+      }
     },
   });
 
@@ -64,7 +102,10 @@ const Login = () => {
             <span className={styles.auth__forgot}>Quên mật khẩu?</span>
           </div>
 
-          <Button content={"Đăng nhập"} type="submit" />
+          <Button
+            content={loading ? "Loading..." : "Đăng nhập"}
+            type="submit"
+          />
 
           <div className={styles.auth__register}>
             <span>Không có tài khoản?</span>

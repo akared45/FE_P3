@@ -1,24 +1,34 @@
-import React, { createContext, useState } from "react";
-import authApi from "../services/api";
+import React, { createContext, useEffect, useState } from "react";
+import { authApi } from "../services/api";
 import Cookies from "js-cookie";
-
+import {
+  setAccessToken,
+  setRefreshToken,
+  clearAccessToken,
+  clearRefreshToken,
+} from "../utils/authMemory";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null);
-  console.log("user:", user);
 
-  // Hàm login
-  const login = async (data) => {
+  useEffect(() => {
+    const savedUser = Cookies.get("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const login = async ({ email, password }) => {
     try {
-      const res = await authApi.login(data); // { auth: { accessToken, refreshToken }, user }
-      const { accessToken } = res.data.auth;
+      const res = await authApi.login({ email, password });
+      const { accessToken, refreshToken } = res.data.auth;
       const userData = res.data.user;
 
       setAccessToken(accessToken);
+      setRefreshToken(refreshToken);
       setUser(userData);
-
+      Cookies.set("user", JSON.stringify(userData), { encode: false });
       console.log("Login success:", userData);
       return userData;
     } catch (error) {
@@ -27,18 +37,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Hàm logout
   const logout = () => {
-    setAccessToken(null);
+    clearAccessToken();
+    clearRefreshToken();
     setUser(null);
-    Cookies.remove("refreshToken");
-    console.log("Logged out");
+    Cookies.remove("user");
   };
 
   return (
     <AuthContext.Provider
       value={{
-        accessToken,
         user,
         login,
         logout,
