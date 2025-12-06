@@ -41,22 +41,12 @@ const Login = () => {
       try {
         const user = await login(values);
         toast.success("Đăng nhập thành công");
-
+        console.log(user);
         if (user && user.userType === "admin") {
           navigate("/admin");
         } else {
           navigate("/");
         }
-        // const { email, password } = values;
-        // const res = await authApi.login({ email, password });
-        // const { accessToken, refreshToken } = res.data.auth;
-        // const user = res.data.user;
-        // Cookies.set("user", JSON.stringify(user), { expires: 1 });
-        // setAccessToken(accessToken);
-        // setRefreshToken(refreshToken);
-        // console.log("đã lưu actok", getAccessToken());
-        // console.log("đã lưu rftoken", getRefreshToken());
-        // toast.success("Đăng nhập thành công");
       } catch (err) {
         console.log(err);
         toast.error("Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.");
