@@ -1,12 +1,9 @@
 import axios from "axios";
 import {
   getAccessToken,
-  setAccessToken,
   clearAccessToken,
-  getRefreshToken,
-  setRefreshToken,
 } from "../utils/authMemory";
-import { refreshTokenRequest } from "./refreshToken";
+import { refreshTokenRequest } from "./refreshToken"; 
 
 const axiosClient = axios.create({
   baseURL: "http://localhost:3000/api",
@@ -35,10 +32,8 @@ axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    // Chỉ xử lý lỗi 401 (token hết hạn)
     if (
-      error.response?.status === 401 &&
+      (error.response?.status === 401 || error.response?.status === 403) && 
       !originalRequest._retry &&
       !originalRequest.url.includes("/auth/refresh")
     ) {
@@ -48,6 +43,7 @@ axiosClient.interceptors.response.use(
         const newTokens = await refreshTokenRequest();
         originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
         return axiosClient(originalRequest);
+        
       } catch (refreshError) {
         clearAccessToken();
         return Promise.reject(refreshError);

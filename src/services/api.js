@@ -25,6 +25,22 @@ export const doctorApi = {
     const res = await axiosClient.get("/doctors");
     return res.data;
   },
+
+  async create(data) {
+    return axiosClient.post("/admin/doctors", data);
+  },
+
+  async delete(id) {
+    return await axiosClient.delete(`/admin/users/${id}`);
+  },
+
+  async update(id, data) {              
+    return await axiosClient.put(`/admin/doctors/${id}`, data);
+  },
+
+  async getById(id) {
+    return axiosClient.get(`/users/${id}`); 
+  },
 };
 
 export const adminApi = {
@@ -37,7 +53,16 @@ export const adminApi = {
 export const patientApi = {
   async getAll() {
     const res = await axiosClient.get("/patients");
-    console.log("res", res);
     return res;
   },
+  async delete(id) {
+    return await axiosClient.delete(`/admin/users/${id}`);
+  },
 };
+
+export const specApi={
+  async getAll(){
+    const res = await axiosClient.get("/specializations");
+    return res
+  }
+}

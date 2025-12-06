@@ -1,33 +1,29 @@
 import axios from "axios";
-import {
-  getRefreshToken,
-  setAccessToken,
-  setRefreshToken,
-  clearAccessToken,
-} from "../utils/authMemory";
+import { setAccessToken, clearAccessToken } from "../utils/authMemory";
 
-const axiosRefresh = axios.create({
+const refreshClient = axios.create({
   baseURL: "http://localhost:3000/api",
   timeout: 5000,
   withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 export const refreshTokenRequest = async () => {
-  const currentRefresh = getRefreshToken();
-  if (!currentRefresh) {
+  try {
+    const res = await refreshClient.post("/auth/refresh");
+    const accessToken = res.data.accessToken || res.data.auth?.accessToken;
+
+    if (!accessToken) {
+      throw new Error("Khong nhan duoc access token moi");
+    }
+    setAccessToken(accessToken);
+
+    return { accessToken };
+  } catch (error) {
+    console.error("Loi :", error);
     clearAccessToken();
-    throw new Error("Refresh Token missing — login again.");
+    throw error;
   }
-
-  const res = await axiosRefresh.post("/auth/refresh", {
-    refreshToken: currentRefresh,
-  });
-
-  const { accessToken, refreshToken } = res.data;
-  setAccessToken(accessToken);
-  setRefreshToken(refreshToken);
-
-  console.log("🔄 Token refreshed!");
-
-  return { accessToken, refreshToken };
 };
