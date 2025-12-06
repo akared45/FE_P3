@@ -16,6 +16,7 @@ import Button from "@components/ui/button";
 import { doctorApi } from "@services/api";
 import EditDoctorDialog from "./EditDoctorDialog";
 import CreateDoctorDialog from "./CreateDoctorDialog";
+import { getImageUrl } from "../../../utils/imageHelper";
 const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
   const [openEdit, setOpenEdit] = useState(false);
@@ -27,6 +28,7 @@ const Doctors = () => {
     try {
       setLoading(true);
       const res = await doctorApi.getAll();
+      console.log(res);
       const data = res.map((item) => ({
         id: item.id,
         avatar: item.avatarUrl || "",
@@ -51,7 +53,6 @@ const Doctors = () => {
   }, []);
 
   const handleOpenEdit = (doctor) => {
-    console.log(doctor)
     const id = doctor.id;
     setSelected(id);
     setOpenEdit(true);
@@ -82,7 +83,7 @@ const Doctors = () => {
       renderCell: (params) => (
         <Stack direction="row" spacing={2} alignItems="center" sx={{ py: 1 }}>
           <Avatar
-            src={params.row.avatar}
+            src={getImageUrl(params.row.avatar)}
             alt={params.row.fullName}
             sx={{
               width: 48,

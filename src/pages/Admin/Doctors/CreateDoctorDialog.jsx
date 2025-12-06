@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -12,10 +12,12 @@ import {
   Box,
   Divider,
   IconButton,
-  Paper
+  Paper,
+  Avatar,
+  Stack
 } from "@mui/material";
-import { AddCircleOutline, DeleteOutline } from "@mui/icons-material";
-import { doctorApi, specApi } from "@services/api";
+import { AddCircleOutline, DeleteOutline, CloudUpload, AccountCircle } from "@mui/icons-material"; // Thêm Icon
+import { doctorApi, specApi, uploadApi } from "@services/api";
 
 const DAYS_OF_WEEK = [
   { value: "Monday", label: "Thứ 2" },
@@ -30,13 +32,16 @@ const DAYS_OF_WEEK = [
 const CreateDoctorDialog = ({ open, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [specializations, setSpecializations] = useState([]);
-
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     username: "", email: "", password: "", fullName: "",
     licenseNumber: "", specCode: "",
-    qualifications: [], 
-    workHistory: [],   
-    schedules: []      
+    qualifications: [],
+    workHistory: [],
+    schedules: [],
+    avatarUrl: ""
   });
 
   useEffect(() => {
@@ -53,7 +58,30 @@ const CreateDoctorDialog = ({ open, onClose, onSuccess }) => {
       };
       fetchSpecs();
     }
+    setSelectedFile(null);
+    setPreviewUrl("");
   }, [open]);
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        alert("Vui lòng chọn file ảnh!");
+        return;
+      }
+      setSelectedFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -112,17 +140,23 @@ const CreateDoctorDialog = ({ open, onClose, onSuccess }) => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.username || !formData.email) {
-      alert("Thiếu thông tin cơ bản!");
+    if (!formData.username || !formData.email || !formData.password) {
+      alert("Thiếu thông tin tài khoản cơ bản!");
       return;
     }
     setLoading(true);
     try {
+      let uploadedAvatarUrl = "";
+      if (selectedFile) {
+        const uploadRes = await uploadApi.uploadImage(selectedFile);
+        uploadedAvatarUrl = uploadRes.data?.url || uploadRes.url;
+      }
       const payload = {
         ...formData,
+        avatarUrl: uploadedAvatarUrl,
         workHistory: formData.workHistory.map(w => ({
-            ...w,
-            to: w.to ? w.to : null
+          ...w,
+          to: w.to ? w.to : null
         }))
       };
       await doctorApi.create(payload);
@@ -142,8 +176,50 @@ const CreateDoctorDialog = ({ open, onClose, onSuccess }) => {
       <DialogTitle>Thêm Hồ Sơ Bác Sĩ</DialogTitle>
       <DialogContent dividers>
         <Box component="form" sx={{ mt: 1 }}>
-          
+
           <Typography variant="h6" color="primary" gutterBottom>1. Thông tin Tài khoản & Chuyên môn</Typography>
+
+          <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 3 }}>
+            <Box sx={{ position: 'relative' }}>
+              <Avatar
+                src={previewUrl} 
+                sx={{ width: 100, height: 100, border: '3px solid #e0e0e0' }}
+              >
+                {!previewUrl && <AccountCircle sx={{ width: 80, height: 80, color: '#bdbdbd' }} />}
+              </Avatar>
+              <input 
+                type="file" 
+                accept="image/*" 
+                hidden 
+                ref={fileInputRef} 
+                onChange={handleFileSelect} 
+              />
+
+              <IconButton 
+                color="primary" 
+                sx={{ 
+                  position: 'absolute', 
+                  bottom: 0, 
+                  right: 0, 
+                  bgcolor: 'white', 
+                  boxShadow: 2,
+                  '&:hover': { bgcolor: '#f5f5f5' }
+                }}
+                onClick={() => fileInputRef.current.click()} 
+              >
+                <CloudUpload />
+              </IconButton>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Ảnh đại diện</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Cho phép: .jpg, .png, .jpeg. Tối đa 5MB.
+              </Typography>
+            </Box>
+          </Stack>
+
+
+
           <Grid container spacing={2}>
             <Grid item xs={3}>
               <TextField fullWidth label="Username *" name="username" value={formData.username} onChange={handleChange} />
@@ -158,9 +234,9 @@ const CreateDoctorDialog = ({ open, onClose, onSuccess }) => {
               <TextField fullWidth label="Họ tên *" name="fullName" value={formData.fullName} onChange={handleChange} />
             </Grid>
             <Grid item xs={4}>
-               <TextField select fullWidth label="Chuyên khoa" name="specCode" value={formData.specCode} onChange={handleChange}>
-                  {specializations.map(s => <MenuItem key={s.code} value={s.code}>{s.name}</MenuItem>)}
-               </TextField>
+              <TextField select fullWidth label="Chuyên khoa" name="specCode" value={formData.specCode} onChange={handleChange}>
+                {specializations.map(s => <MenuItem key={s.code} value={s.code}>{s.name}</MenuItem>)}
+              </TextField>
             </Grid>
             <Grid item xs={4}>
               <TextField fullWidth label="Số chứng chỉ" name="licenseNumber" value={formData.licenseNumber} onChange={handleChange} />
@@ -173,20 +249,20 @@ const CreateDoctorDialog = ({ open, onClose, onSuccess }) => {
             <Typography variant="h6" color="primary">2. Bằng cấp / Học vấn</Typography>
             <Button startIcon={<AddCircleOutline />} onClick={addQualification} variant="outlined" size="small">Thêm bằng cấp</Button>
           </Box>
-          
+
           {formData.qualifications.map((item, index) => (
             <Paper key={index} variant="outlined" sx={{ p: 2, mb: 2, bgcolor: '#f9fafb' }}>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={5}>
-                  <TextField fullWidth label="Tên bằng cấp (VD: Tiến sĩ Y học)" size="small" 
+                  <TextField fullWidth label="Tên bằng cấp (VD: Tiến sĩ Y học)" size="small"
                     value={item.degree} onChange={(e) => changeQualification(index, 'degree', e.target.value)} />
                 </Grid>
                 <Grid item xs={4}>
-                  <TextField fullWidth label="Nơi cấp (Trường/Viện)" size="small" 
+                  <TextField fullWidth label="Nơi cấp (Trường/Viện)" size="small"
                     value={item.institution} onChange={(e) => changeQualification(index, 'institution', e.target.value)} />
                 </Grid>
                 <Grid item xs={2}>
-                  <TextField fullWidth label="Năm" type="number" size="small" 
+                  <TextField fullWidth label="Năm" type="number" size="small"
                     value={item.year} onChange={(e) => changeQualification(index, 'year', e.target.value)} />
                 </Grid>
                 <Grid item xs={1}>
@@ -207,11 +283,11 @@ const CreateDoctorDialog = ({ open, onClose, onSuccess }) => {
             <Paper key={index} variant="outlined" sx={{ p: 2, mb: 2, bgcolor: '#f9fafb' }}>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={3}>
-                  <TextField fullWidth label="Chức vụ (VD: Trưởng khoa)" size="small" 
+                  <TextField fullWidth label="Chức vụ (VD: Trưởng khoa)" size="small"
                     value={item.position} onChange={(e) => changeWorkHistory(index, 'position', e.target.value)} />
                 </Grid>
                 <Grid item xs={4}>
-                  <TextField fullWidth label="Nơi làm việc (Bệnh viện)" size="small" 
+                  <TextField fullWidth label="Nơi làm việc (Bệnh viện)" size="small"
                     value={item.place} onChange={(e) => changeWorkHistory(index, 'place', e.target.value)} />
                 </Grid>
                 <Grid item xs={2}>

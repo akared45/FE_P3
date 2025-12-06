@@ -1,21 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Grid,
-  MenuItem,
-  Typography,
-  Box,
-  Divider,
-  IconButton,
-  Paper
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Button, Grid, MenuItem, Typography, Box, Divider, IconButton, Paper,
+  Avatar, Stack
 } from "@mui/material";
-import { AddCircleOutline, DeleteOutline } from "@mui/icons-material";
-import { doctorApi, specApi } from "@services/api";
+import { AddCircleOutline, DeleteOutline, CloudUpload, AccountCircle } from "@mui/icons-material";
+import { doctorApi, specApi, uploadApi } from "@services/api";
+import { getImageUrl } from "@utils/imageHelper";
 
 const DAYS_OF_WEEK = [
   { value: "Monday", label: "Thứ 2" },
@@ -28,17 +19,18 @@ const DAYS_OF_WEEK = [
 ];
 
 const EditDoctorDialog = ({ open, onClose, doctorData, onSuccess }) => {
-  console.log(doctorData);
   const [loading, setLoading] = useState(false);
   const [specializations, setSpecializations] = useState([]);
-
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
-    fullName: "", 
-    licenseNumber: "", 
+    fullName: "",
+    licenseNumber: "",
     specCode: "",
     isActive: true,
-    qualifications: [], 
-    workHistory: [], 
+    qualifications: [],
+    workHistory: [],
     schedules: []
   });
 
@@ -50,35 +42,58 @@ const EditDoctorDialog = ({ open, onClose, doctorData, onSuccess }) => {
             specApi.getAll(),
             doctorApi.getById(doctorData)
           ]);
-
           const specs = specsRes.data || specsRes;
           setSpecializations(specs);
           const doc = doctorRes.data || doctorRes;
-          
           setFormData({
             fullName: doc.fullName || "",
             licenseNumber: doc.licenseNumber || "",
-            specCode: doc.specialization?.code || doc.specCode || "", 
+            specCode: doc.specialization?.code || doc.specCode || "",
             isActive: doc.isActive,
-
             qualifications: doc.qualifications || [],
             schedules: doc.schedules || [],
             workHistory: (doc.workHistory || []).map(w => ({
-                ...w,
-                from: w.from ? w.from.split('T')[0] : '',
-                to: w.to ? w.to.split('T')[0] : ''
-            }))
+              ...w,
+              from: w.from ? w.from.split('T')[0] : '',
+              to: w.to ? w.to.split('T')[0] : ''
+            })),
+            avatarUrl: doc.avatarUrl || ""
           });
+          if (doc.avatarUrl) {
+            setPreviewUrl(getImageUrl(doc.avatarUrl));
+          } else {
+            setPreviewUrl("");
+          }
+          setSelectedFile(null);
 
         } catch (error) {
           console.error("Error loading data:", error);
-          alert("Không tải được thông tin bác sĩ. Vui lòng thử lại.");
+          alert("Lỗi tải dữ liệu!");
           onClose();
         }
       };
       fetchData();
     }
   }, [open, doctorData]);
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        alert("Vui lòng chọn file ảnh!");
+        return;
+      }
+      setSelectedFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+    }
+  };
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -136,27 +151,29 @@ const EditDoctorDialog = ({ open, onClose, doctorData, onSuccess }) => {
     setFormData(prev => ({ ...prev, schedules: newList }));
   };
 
-
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      let currentAvatarUrl = formData.avatarUrl;
+      if (selectedFile) {
+        const uploadRes = await uploadApi.uploadImage(selectedFile);
+        currentAvatarUrl = uploadRes.data?.url || uploadRes.url;
+      }
       const payload = {
         ...formData,
-
+        avatarUrl: currentAvatarUrl,
         workHistory: formData.workHistory.map(w => ({
-            ...w,
-            to: w.to ? w.to : null
+          ...w,
+          to: w.to ? w.to : null
         }))
       };
-
       await doctorApi.update(doctorData, payload);
-      
       alert("Cập nhật thành công!");
       onSuccess();
-      onClose(); 
+      onClose();
     } catch (error) {
       console.error(error);
-      alert("Lỗi: " + (error.response?.data?.message || "Unknown Error"));
+      alert("Lỗi: " + (error.response?.data?.message || "Error"));
     } finally {
       setLoading(false);
     }
@@ -167,26 +184,48 @@ const EditDoctorDialog = ({ open, onClose, doctorData, onSuccess }) => {
       <DialogTitle>Chỉnh sửa thông tin Bác sĩ</DialogTitle>
       <DialogContent dividers>
         <Box component="form" sx={{ mt: 1 }}>
-            
-          {/* === 1. THÔNG TIN CƠ BẢN === */}
           <Typography variant="h6" color="primary" gutterBottom>1. Thông tin chung</Typography>
+          <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 3 }}>
+            <Box sx={{ position: 'relative' }}>
+              <Avatar
+                src={previewUrl}
+                sx={{ width: 100, height: 100, border: '3px solid #e0e0e0' }}
+              >
+                {!previewUrl && <AccountCircle sx={{ width: 80, height: 80, color: '#bdbdbd' }} />}
+              </Avatar>
+
+              <input type="file" accept="image/*" hidden ref={fileInputRef} onChange={handleFileSelect} />
+
+              <IconButton
+                color="primary"
+                sx={{ position: 'absolute', bottom: 0, right: 0, bgcolor: 'white', boxShadow: 2, '&:hover': { bgcolor: '#f5f5f5' } }}
+                onClick={() => fileInputRef.current.click()}
+              >
+                <CloudUpload />
+              </IconButton>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2">Ảnh đại diện</Typography>
+              <Typography variant="caption" color="text.secondary">Thay đổi ảnh mới nếu cần.</Typography>
+            </Box>
+          </Stack>
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <TextField fullWidth label="Họ tên" name="fullName" value={formData.fullName} onChange={handleChange} />
             </Grid>
             <Grid item xs={6}>
-               <TextField select fullWidth label="Chuyên khoa" name="specCode" value={formData.specCode} onChange={handleChange}>
-                  {specializations.map(s => <MenuItem key={s.code} value={s.code}>{s.name}</MenuItem>)}
-               </TextField>
+              <TextField select fullWidth label="Chuyên khoa" name="specCode" value={formData.specCode} onChange={handleChange}>
+                {specializations.map(s => <MenuItem key={s.code} value={s.code}>{s.name}</MenuItem>)}
+              </TextField>
             </Grid>
             <Grid item xs={4}>
               <TextField fullWidth label="Số chứng chỉ" name="licenseNumber" value={formData.licenseNumber} onChange={handleChange} />
             </Grid>
             <Grid item xs={4}>
-                <TextField select fullWidth label="Trạng thái" name="isActive" value={formData.isActive} onChange={(e) => setFormData({...formData, isActive: e.target.value})}>
-                    <MenuItem value={true}>Hoạt động</MenuItem>
-                    <MenuItem value={false}>Dừng hoạt động</MenuItem>
-                </TextField>
+              <TextField select fullWidth label="Trạng thái" name="isActive" value={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.value })}>
+                <MenuItem value={true}>Hoạt động</MenuItem>
+                <MenuItem value={false}>Dừng hoạt động</MenuItem>
+              </TextField>
             </Grid>
           </Grid>
 
@@ -196,20 +235,20 @@ const EditDoctorDialog = ({ open, onClose, doctorData, onSuccess }) => {
             <Typography variant="h6" color="primary">2. Bằng cấp / Học vấn</Typography>
             <Button startIcon={<AddCircleOutline />} onClick={addQualification} variant="outlined" size="small">Thêm bằng cấp</Button>
           </Box>
-          
+
           {formData.qualifications.map((item, index) => (
             <Paper key={index} variant="outlined" sx={{ p: 2, mb: 2, bgcolor: '#f9fafb' }}>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={5}>
-                  <TextField fullWidth label="Tên bằng cấp" size="small" 
+                  <TextField fullWidth label="Tên bằng cấp" size="small"
                     value={item.degree} onChange={(e) => changeQualification(index, 'degree', e.target.value)} />
                 </Grid>
                 <Grid item xs={4}>
-                  <TextField fullWidth label="Nơi cấp" size="small" 
+                  <TextField fullWidth label="Nơi cấp" size="small"
                     value={item.institution} onChange={(e) => changeQualification(index, 'institution', e.target.value)} />
                 </Grid>
                 <Grid item xs={2}>
-                  <TextField fullWidth label="Năm" type="number" size="small" 
+                  <TextField fullWidth label="Năm" type="number" size="small"
                     value={item.year} onChange={(e) => changeQualification(index, 'year', e.target.value)} />
                 </Grid>
                 <Grid item xs={1}>
@@ -230,11 +269,11 @@ const EditDoctorDialog = ({ open, onClose, doctorData, onSuccess }) => {
             <Paper key={index} variant="outlined" sx={{ p: 2, mb: 2, bgcolor: '#f9fafb' }}>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={3}>
-                  <TextField fullWidth label="Chức vụ" size="small" 
+                  <TextField fullWidth label="Chức vụ" size="small"
                     value={item.position} onChange={(e) => changeWorkHistory(index, 'position', e.target.value)} />
                 </Grid>
                 <Grid item xs={4}>
-                  <TextField fullWidth label="Nơi làm việc" size="small" 
+                  <TextField fullWidth label="Nơi làm việc" size="small"
                     value={item.place} onChange={(e) => changeWorkHistory(index, 'place', e.target.value)} />
                 </Grid>
                 <Grid item xs={2}>

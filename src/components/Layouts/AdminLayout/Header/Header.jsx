@@ -7,23 +7,34 @@ import Modal from "../../../ui/modal";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SearchIcon from "@mui/icons-material/Search";
+import {authApi} from "@services/api";
 const Header = () => {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
   const [isOpen, setIsOpen] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  
 
   const handleOpenOptions = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleLogout = () => {
+ const handleLogout = () => {
+    setIsOpen(false);
     setOpenModal(true);
   };
-
-  const confirmLogout = () => {
-    logout();
-    navigate("/dang-nhap");
+  const confirmLogout = async () => {
+    try {
+  
+      await authApi.logout(); 
+    } catch (error) {
+      console.error("Lỗi khi gọi API logout:", error);
+    } finally {
+    
+      logout(); 
+      setOpenModal(false);
+      navigate("/dang-nhap");
+    }
   };
   const handleProfileClick = () => {
     setIsOpen(false);

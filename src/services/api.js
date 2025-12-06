@@ -14,6 +14,11 @@ export const authApi = {
     const res = await axiosClient.post("/auth/refresh");
     return res;
   },
+
+  async logout() {
+    return axiosClient.post("/auth/logout");
+  },
+
   async getMe() {
     const res = await axiosClient.get("/");
     return res;
@@ -34,12 +39,12 @@ export const doctorApi = {
     return await axiosClient.delete(`/admin/users/${id}`);
   },
 
-  async update(id, data) {              
+  async update(id, data) {
     return await axiosClient.put(`/admin/doctors/${id}`, data);
   },
 
   async getById(id) {
-    return axiosClient.get(`/users/${id}`); 
+    return axiosClient.get(`/users/${id}`);
   },
 };
 
@@ -60,9 +65,21 @@ export const patientApi = {
   },
 };
 
-export const specApi={
-  async getAll(){
+export const specApi = {
+  async getAll() {
     const res = await axiosClient.get("/specializations");
-    return res
+    return res;
   }
-}
+};
+
+export const uploadApi = {
+  uploadImage(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return axiosClient.post("/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+};
