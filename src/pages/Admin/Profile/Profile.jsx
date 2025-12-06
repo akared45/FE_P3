@@ -4,7 +4,7 @@ import * as Yup from "yup";
 import TextFields from "@/components/ui/TextFields";
 import Button from "@/components/ui/Button";
 import styles from "./style.module.scss";
-
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 const Profile = () => {
   const [editing, setEditing] = useState(false);
 
@@ -71,7 +71,9 @@ const Profile = () => {
 
           <div className={styles.profileMain}>
             <div className={styles.infoSection}>
-              <h3 className={styles.sectionTitle}>📋 Thông Tin Cá Nhân</h3>
+              <h3 className={styles.sectionTitle}>
+                <AccountCircleIcon /> Thông Tin Cá Nhân
+              </h3>
 
               {!editing ? (
                 <>
