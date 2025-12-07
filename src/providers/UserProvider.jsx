@@ -53,32 +53,12 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const addPatient = async (data) => {
-    try {
-      const res = await patientApi.create(data);
-      setPatients((prev) => [...prev, res.data]);
-    } catch (err) {
-      throw err;
-    }
-  };
-
   // ------------------ UPDATE ------------------
   const updateDoctor = async (id, data) => {
     try {
       const res = await doctorApi.update(id, data);
       setDoctors((prev) =>
         prev.map((d) => (d.id === id ? { ...d, ...res.data } : d))
-      );
-    } catch (err) {
-      throw err;
-    }
-  };
-
-  const updatePatient = async (id, data) => {
-    try {
-      const res = await patientApi.update(id, data);
-      setPatients((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, ...res.data } : p))
       );
     } catch (err) {
       throw err;
@@ -107,13 +87,11 @@ export const UserProvider = ({ children }) => {
   // ------------------ EFFECT ------------------
   useEffect(() => {
     fetchDoctors();
-    fetchPatients();
   }, []);
 
   return (
     <UserContext.Provider
       value={{
-        // Doctors
         doctors,
         loadingDoctors,
         totalDoctors,
@@ -123,14 +101,12 @@ export const UserProvider = ({ children }) => {
         updateDoctor,
         deleteDoctor,
 
-        // Patients
         patients,
         loadingPatients,
         totalPatients,
         activePatients,
         refreshPatients: fetchPatients,
-        addPatient,
-        updatePatient,
+
         deletePatient,
       }}
     >
