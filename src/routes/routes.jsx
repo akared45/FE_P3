@@ -13,6 +13,7 @@ import Login from "../pages/Auth/Login/Login";
 import Register from "../pages/Auth/Register/Register";
 import ProtectRoutes from "./ProtectRoutes";
 import Profile from "../pages/Admin/Profile/Profile";
+import DoctorDetail from "../pages/Client/DoctorPage/DoctorDetail";
 const routes = [
   {
     path: "/",
@@ -23,6 +24,7 @@ const routes = [
       { path: "ve-chung-toi", element: <AboutUsPage /> },
       { path: "dang-nhap", element: <Login /> },
       { path: "dang-ky", element: <Register /> },
+      { path: "bac-si/:id", element: <DoctorDetail /> }
     ],
   },
   {
@@ -41,6 +43,7 @@ const routes = [
       { path: "lich-lam-viec", element: <Schedule /> },
       { path: "bao-cao", element: <Reports /> },
       { path: "cai-dat", element: <Settings /> },
+       
     ],
   },
 ];

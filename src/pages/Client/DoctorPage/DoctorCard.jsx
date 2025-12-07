@@ -6,7 +6,8 @@ import {
 } from "@mui/material";
 import { AccessTime, Star, WorkOutline } from "@mui/icons-material";
 import { getImageUrl } from "../../../utils/imageHelper";
-const DoctorCard = ({ doctor }) => {
+const DoctorCard = ({ doctor, onBook }) => {
+    console.log(doctor);
     const navigate = useNavigate();
     const formatCurrency = (value) =>
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
@@ -207,7 +208,7 @@ const DoctorCard = ({ doctor }) => {
                     size="medium"
                     variant="contained"
                     fullWidth
-                    onClick={() => navigate(`/dat-lich/${doctor.id}`)}
+                    onClick={() => onBook(doctor)}
                     sx={{
                         borderRadius: 2,
                         textTransform: 'none',

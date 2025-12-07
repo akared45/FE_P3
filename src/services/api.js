@@ -25,7 +25,9 @@ export const doctorApi = {
 
   update: (id, data) => axiosClient.put(`/admin/doctors/${id}`, data),
 
-  delete: (id) => axiosClient.delete(`/admin/users/${id}`), // xoá user bác sĩ
+  delete: (id) => axiosClient.delete(`/admin/users/${id}`),
+
+  getById: (id) => axiosClient.get(`/doctors/${id}`) 
 };
 
 /* ============================
@@ -51,6 +53,11 @@ export const adminApi = {
   getAdmin: () => axiosClient.get("/admin/doctors/U003"),
 };
 
+export const appointmentApi = {
+  book(data) {
+    return axiosClient.post("/appointments", data);
+  }
+};
 /* ============================
    UPLOAD API
 ============================ */
