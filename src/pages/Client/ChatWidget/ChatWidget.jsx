@@ -1,223 +1,104 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import CloseIcon from "@mui/icons-material/Close";
 import styles from "./style.module.scss";
-import { IoChatbubblesOutline } from "react-icons/io5";
-import { doctors } from "@pages/Client/DoctorPage/mock/doctors";
+import { aiApi } from "../../../services/api";
 
-export default function ChatWidget() {
+const ChatWidget = () => {
   const [open, setOpen] = useState(false);
-  const [activeDoctor, setActiveDoctor] = useState(0);
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState(() => doctors.map(() => []));
+  const [text, setText] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const messagesEndRef = useRef(null);
+  const sendMessage = async () => {
+    if (!text.trim()) return;
 
-  useEffect(() => {
-    if (open) {
-      // chỉ scroll khi mở cửa sổ chat
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, activeDoctor, open]);
+    // Thêm tin nhắn user
+    const userMessage = { from: "user", text };
+    setMessages([...messages, userMessage]);
+    setText("");
+    setLoading(true);
 
-  const sendMessage = () => {
-    if (!message.trim()) return;
-    const copy = [...messages];
-    copy[activeDoctor].push({
-      from: "me",
-      text: message,
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      avatar: "/your-avatar.png",
-    });
-    setMessages(copy);
-    setMessage("");
-
-    setTimeout(() => {
-      const reply = [...copy];
-      reply[activeDoctor].push({
+    try {
+      // Gọi API AI
+      const response = await aiApi.suggest({ prompt: text });
+      const aiMessage = {
         from: "doctor",
-        text: "Cảm ơn bạn! Tôi sẽ hỗ trợ ngay.",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        avatar: doctors[activeDoctor].avatar,
-      });
-      setMessages(reply);
-    }, 800);
-  };
+        text: response.data?.reply || "Xin lỗi, bác sĩ chưa trả lời kịp.",
+      };
 
-  const bookAppointment = () => {
-    const copy = [...messages];
-    copy[activeDoctor].push({
-      from: "system",
-      text: `📅 Yêu cầu đặt lịch gửi tới ${doctors[activeDoctor].name}.`,
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    });
-    setMessages(copy);
-  };
-
-  // Handler để đóng về icon (minimize)
-  const minimize = () => setOpen(false);
-
-  // Prevent body from scrolling when chat open
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [
+        ...prev,
+        { from: "doctor", text: "Có lỗi xảy ra, vui lòng thử lại." },
+      ]);
+    } finally {
+      setLoading(false);
     }
-    return () => (document.body.style.overflow = "");
-  }, [open]);
-
+  };
   return (
     <>
-      {/* Floating icon (only when closed) */}
       {!open && (
-        <button
-          className={styles.floatingBtn}
-          aria-label="Mở chat"
-          onClick={() => setOpen(true)}
-        >
-          <IoChatbubblesOutline className={styles.floatingIcon} />
+        <button className={styles.floatingBtn} onClick={() => setOpen(true)}>
+          <ChatBubbleOutlineIcon />
         </button>
       )}
 
-      {/* Full overlay chat (only when open) */}
       {open && (
-        <div className={styles.overlay} role="dialog" aria-modal="true">
-          <div className={styles.container}>
-            <header className={styles.header}>
-              <div className={styles.headerLeft}>
-                <div className={styles.headerTitle}>Tư vấn y tế trực tuyến</div>
-                <div className={styles.headerSubtitle}>
-                  {doctors[activeDoctor].name} —{" "}
-                  {doctors[activeDoctor].specialty}
-                </div>
-              </div>
+        <div className={styles.overlay}>
+          <div className={styles.chatBox}>
+            {/* Header */}
+            <div className={styles.header}>
+              <span className={styles.headerTitle}>Chat với bác sĩ</span>
+              <button
+                className={styles.headerClose}
+                onClick={() => setOpen(false)}
+              >
+                <CloseIcon />
+              </button>
+            </div>
 
-              <div className={styles.headerRight}>
-                <button className={styles.bookBtn} onClick={bookAppointment}>
-                  📅 Đặt lịch
-                </button>
-                <button
-                  className={styles.minimizeBtn}
-                  onClick={minimize}
-                  aria-label="Thu nhỏ"
+            {/* Message list */}
+            <div className={styles.messages}>
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`${styles.msg} ${
+                    msg.from === "user" ? styles.msgUser : styles.msgDoctor
+                  }`}
                 >
-                  ─
-                </button>
-                <button
-                  className={styles.closeBtn}
-                  onClick={() => setOpen(false)}
-                  aria-label="Đóng"
-                >
-                  ✕
-                </button>
-              </div>
-            </header>
-
-            <div className={styles.body}>
-              <aside className={styles.sidebar}>
-                <input
-                  className={styles.search}
-                  placeholder="Tìm kiếm bác sĩ..."
-                />
-
-                <div className={styles.list}>
-                  {doctors.map((doc, idx) => (
-                    <div
-                      key={doc.id}
-                      className={`${styles.listItem} ${
-                        activeDoctor === idx ? styles.active : ""
-                      }`}
-                      onClick={() => setActiveDoctor(idx)}
-                    >
-                      <div className={styles.avatar}>
-                        {/* fallback: show initials when avatar URL absent */}
-                        {doc.avatar ? (
-                          <img src={doc.avatar} alt={doc.name} />
-                        ) : (
-                          <span>
-                            {(doc.name || "BS")
-                              .split(" ")
-                              .slice(-1)[0]
-                              .slice(0, 2)}
-                          </span>
-                        )}
-                        <span className={styles.onlineDot} />
-                      </div>
-                      <div className={styles.info}>
-                        <div className={styles.name}>{doc.name}</div>
-                        <div className={styles.spec}>{doc.specialty}</div>
-                      </div>
-                    </div>
-                  ))}
+                  {msg.text}
                 </div>
-              </aside>
-
-              <section className={styles.chatPanel}>
-                <div className={styles.messages}>
-                  {messages[activeDoctor].length === 0 && (
-                    <div className={styles.welcome}>
-                      Xin chào! Tôi là {doctors[activeDoctor].name}. Tôi có thể
-                      giúp gì cho bạn?
-                    </div>
-                  )}
-
-                  {messages[activeDoctor].map((m, i) => (
-                    <div
-                      key={i}
-                      className={`${styles.messageRow} ${
-                        m.from === "me"
-                          ? styles.msgMe
-                          : m.from === "doctor"
-                          ? styles.msgDoctor
-                          : styles.msgSystem
-                      }`}
-                    >
-                      {m.from !== "me" && m.from !== "system" && (
-                        <img
-                          src={m.avatar}
-                          alt="avatar"
-                          className={styles.msgAvatar}
-                        />
-                      )}
-
-                      <div>
-                        <div className={styles.msgBubble}>{m.text}</div>
-                        <div className={styles.msgTime}>{m.time}</div>
-                      </div>
-                    </div>
-                  ))}
-
-                  <div ref={messagesEndRef} />
+              ))}
+              {loading && (
+                <div className={`${styles.msg} ${styles.msgDoctor}`}>
+                  Đang trả lời...
                 </div>
+              )}
+            </div>
 
-                <div className={styles.footer}>
-                  <button className={styles.attachBtn} type="button">
-                    📎
-                  </button>
-                  <input
-                    className={styles.input}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                    placeholder="Nhập tin nhắn..."
-                  />
-                  <button className={styles.sendBtn} onClick={sendMessage}>
-                    Gửi
-                  </button>
-                </div>
-              </section>
+            {/* Input */}
+            <div className={styles.footer}>
+              <input
+                className={styles.input}
+                type="text"
+                placeholder="Nhập tin nhắn..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              />
+              <button className={styles.sendBtn} onClick={sendMessage}>
+                Gửi
+              </button>
             </div>
           </div>
         </div>
       )}
     </>
   );
-}
+};
+
+export default ChatWidget;

@@ -27,7 +27,7 @@ export const doctorApi = {
 
   delete: (id) => axiosClient.delete(`/admin/users/${id}`),
 
-  getById: (id) => axiosClient.get(`/doctors/${id}`) 
+  getById: (id) => axiosClient.get(`/doctors/${id}`),
 };
 
 /* ============================
@@ -56,8 +56,13 @@ export const adminApi = {
 export const appointmentApi = {
   book(data) {
     return axiosClient.post("/appointments", data);
-  }
+  },
 };
+
+export const aiApi = {
+  suggest: (data) => axiosClient.post("/ai/suggest", data),
+};
+
 /* ============================
    UPLOAD API
 ============================ */
