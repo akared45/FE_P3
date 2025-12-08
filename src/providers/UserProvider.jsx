@@ -100,13 +100,11 @@ export const UserProvider = ({ children }) => {
         addDoctor,
         updateDoctor,
         deleteDoctor,
-
         patients,
         loadingPatients,
         totalPatients,
         activePatients,
         refreshPatients: fetchPatients,
-
         deletePatient,
       }}
     >

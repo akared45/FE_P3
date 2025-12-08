@@ -7,7 +7,6 @@ import Modal from "../../../ui/modal";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import SearchIcon from "@mui/icons-material/Search";
-import { authApi } from "@services/api";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 
@@ -34,15 +33,9 @@ const Header = () => {
   };
 
   const confirmLogout = async () => {
-    try {
-      await authApi.logout();
-    } catch (error) {
-      console.error("Lỗi khi gọi API logout:", error);
-    } finally {
-      logout();
-      setOpenModal(false);
-      navigate("/dang-nhap");
-    }
+    await logout();
+    setOpenModal(false);
+    navigate("/dang-nhap");
   };
 
   const handleProfileClick = () => {

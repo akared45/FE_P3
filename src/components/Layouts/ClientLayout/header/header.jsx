@@ -31,7 +31,12 @@ const pages = [
   { content: "Liên hệ", to: "/lien-he" },
 ];
 
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+const settings = [
+  { label: "Profile", to: "/profile" },
+  { label: "Dashboard", to: "/dashboard" },
+  { label: "Account", to: "/account" },
+  { label: "Đăng xuất", action: "logout" },
+];
 
 const Header = () => {
   const { user, logout } = useContext(AuthContext);
@@ -56,13 +61,6 @@ const Header = () => {
   const handleMenuClick = () => {
     handleCloseNavMenu();
     handleCloseMegaMenu();
-  };
-
-  const handleLogoutClick = (setting) => {
-    handleCloseUserMenu();
-    if (setting === "Logout") {
-      setOpenLogoutModal(true);
-    }
   };
 
   const handleConfirmLogout = () => {
@@ -311,13 +309,15 @@ const Header = () => {
                     anchorOrigin={{ vertical: "top", horizontal: "right" }}
                     transformOrigin={{ vertical: "top", horizontal: "right" }}
                   >
-                    {settings.map((setting) => (
+                    {settings.map((item) => (
                       <MenuItem
-                        key={setting}
-                        onClick={() => handleLogoutClick(setting)}
+                        key={item.label}
+                        component={item.to ? Link : "div"}
+                        to={item.to || undefined}
+                        onClick={() => item.action === "logout" && setOpenLogoutModal(true)}
                       >
-                        <Typography textAlign="center">
-                          {setting === "Logout" ? "Đăng xuất" : setting}
+                        <Typography textAlign="center" sx={{ width: "100%" }}>
+                          {item.label}
                         </Typography>
                       </MenuItem>
                     ))}
