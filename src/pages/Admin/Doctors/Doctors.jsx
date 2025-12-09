@@ -20,9 +20,9 @@ const Doctors = () => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
-  // Mở modal sửa
+  console.log(doctors);
   const handleOpenEdit = (doctor) => {
-    setSelectedDoctor(doctor); // lưu object bác sĩ
+    setSelectedDoctor(doctor);
     setOpenEdit(true);
   };
 

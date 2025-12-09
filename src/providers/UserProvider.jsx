@@ -4,26 +4,23 @@ import { doctorApi, patientApi } from "@services/api";
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  // --- Doctors ---
   const [doctors, setDoctors] = useState([]);
   const [loadingDoctors, setLoadingDoctors] = useState(true);
 
-  // --- Patients ---
   const [patients, setPatients] = useState([]);
   const [loadingPatients, setLoadingPatients] = useState(true);
 
-  // --- Stats ---
   const totalDoctors = doctors.length;
   const activeDoctors = doctors.filter((d) => d.isActive).length;
   const totalPatients = patients.length;
   const activePatients = patients.filter((p) => p.isActive).length;
 
-  // ------------------ FETCH ------------------
   const fetchDoctors = async () => {
     try {
       setLoadingDoctors(true);
       const res = await doctorApi.getAll();
       setDoctors(res.data);
+      console.log("res doctor", res);
     } catch (err) {
       console.error(err);
     } finally {
@@ -43,7 +40,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // ------------------ ADD ------------------
   const addDoctor = async (data) => {
     try {
       const res = await doctorApi.create(data);
@@ -53,7 +49,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // ------------------ UPDATE ------------------
   const updateDoctor = async (id, data) => {
     try {
       const res = await doctorApi.update(id, data);
@@ -65,7 +60,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // ------------------ DELETE ------------------
   const deleteDoctor = async (id) => {
     try {
       await doctorApi.delete(id);
