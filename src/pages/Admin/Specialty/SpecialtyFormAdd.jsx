@@ -17,9 +17,18 @@ const SpecialtyFormAdd = ({ onClose }) => {
       category: Yup.string().required("Danh mục không được để trống"),
     }),
     onSubmit: async (values) => {
-      const res = await specApi.addNew(values);
-      console.log("Form submit:", res);
-      onClose();
+      try {
+        const payload = {
+          _id: values.code,
+          name: values.name,
+          category: values.category,
+        };
+        const res = await specApi.update(values.code, payload);
+        console.log("Update result:", res);
+        onClose();
+      } catch (error) {
+        console.log(error);
+      }
     },
   });
 
