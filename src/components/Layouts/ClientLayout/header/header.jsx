@@ -35,6 +35,12 @@ const pages = [
 ];
 
 const settings = [
+
+  { label: "Profile", to: "/profile" },
+  { label: "Dashboard", to: "/dashboard" },
+  { label: "Account", to: "/account" },
+  { label: "Đăng xuất", action: "logout" },
+
   {
     label: 'Hồ sơ',
     to: '/profile',
@@ -77,13 +83,6 @@ const Header = () => {
   const handleMenuClick = () => {
     handleCloseNavMenu();
     handleCloseMegaMenu();
-  };
-
-  const handleLogoutClick = (setting) => {
-    handleCloseUserMenu();
-    if (setting === "Logout") {
-      setOpenLogoutModal(true);
-    }
   };
 
   const handleConfirmLogout = () => {
@@ -336,6 +335,12 @@ const Header = () => {
                         key={item.label}
                         component={item.to ? Link : "div"}
                         to={item.to || undefined}
+
+                        onClick={() => item.action === "logout" && setOpenLogoutModal(true)}
+                      >
+                        <Typography textAlign="center" sx={{ width: "100%" }}>
+                          {item.label}
+                        </Typography>
                         onClick={(e) => {
                           if (item.action === "logout") {
                             e.preventDefault();
