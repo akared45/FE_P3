@@ -16,6 +16,9 @@ import { Link } from "react-router-dom";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { AuthContext } from "../../../../providers/AuthProvider";
 import Modal from "../../../ui/modal";
+import PersonOutline from '@mui/icons-material/PersonOutline';
+import Settings from '@mui/icons-material/Settings';
+import ExitToApp from '@mui/icons-material/ExitToApp';
 
 const pages = [
   { content: "Đội ngũ bác sĩ", to: "/doi-ngu-bac-si" },
@@ -32,10 +35,29 @@ const pages = [
 ];
 
 const settings = [
+
   { label: "Profile", to: "/profile" },
   { label: "Dashboard", to: "/dashboard" },
   { label: "Account", to: "/account" },
   { label: "Đăng xuất", action: "logout" },
+
+  {
+    label: 'Hồ sơ',
+    to: '/profile',
+    icon: <PersonOutline fontSize="small" />,
+  },
+  {
+    label: 'Cài đặt',
+    to: '/settings',
+    icon: <Settings fontSize="small" />,
+  },
+  {
+    label: 'Đăng xuất',
+    action: 'logout',
+    icon: <ExitToApp fontSize="small" />,
+    danger: true,
+    dividerAfter: true,
+  },
 ];
 
 const Header = () => {
@@ -281,19 +303,18 @@ const Header = () => {
                       <Avatar
                         alt={user?.fullName || "User"}
                         src={user?.avatarUrl}
-                        sx={{ width: 32, height: 32 }} // Đảm bảo Avatar có kích thước chuẩn
+                        sx={{ width: 32, height: 32 }} 
                       >
                         {userInitials}
                       </Avatar>
 
-                      {/* Typography chứa tên người dùng */}
                       <Typography
                         component="span"
                         sx={{
-                          display: { xs: "none", md: "block" }, // Ẩn tên trên mobile
+                          display: { xs: "none", md: "block" },
                           fontWeight: 500,
                           color: "inherit",
-                          lineHeight: 1, // Đảm bảo căn chỉnh vertical tốt hơn
+                          lineHeight: 1,
                         }}
                       >
                         Hi! {user.fullName}
@@ -314,11 +335,65 @@ const Header = () => {
                         key={item.label}
                         component={item.to ? Link : "div"}
                         to={item.to || undefined}
+
                         onClick={() => item.action === "logout" && setOpenLogoutModal(true)}
                       >
                         <Typography textAlign="center" sx={{ width: "100%" }}>
                           {item.label}
                         </Typography>
+                        onClick={(e) => {
+                          if (item.action === "logout") {
+                            e.preventDefault();
+                            setOpenLogoutModal(true);
+                          }
+                        }}
+                        sx={{
+                          py: 1.2,
+                          px: 2,
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            transform: 'translateX(4px)',
+                            backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                          },
+                          '&:active': {
+                            backgroundColor: 'rgba(25, 118, 210, 0.12)',
+                          }
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                          {item.icon && (
+                            <Box sx={{
+                              mr: 2,
+                              color: 'text.secondary',
+                              display: 'flex',
+                              alignItems: 'center'
+                            }}>
+                              {item.icon}
+                            </Box>
+                          )}
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              flexGrow: 1,
+                              fontSize: '0.875rem',
+                              color: 'text.primary'
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+                          {item.shortcut && (
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                ml: 2,
+                                color: 'text.secondary',
+                                fontSize: '0.75rem'
+                              }}
+                            >
+                              {item.shortcut}
+                            </Typography>
+                          )}
+                        </Box>
                       </MenuItem>
                     ))}
                   </Menu>

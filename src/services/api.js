@@ -12,7 +12,7 @@ export const authApi = {
 
   logout: () => axiosClient.post("/auth/logout"),
 
-  getMe: () => axiosClient.get("/auth/me"), // ❗ Chuẩn REST hơn "/"
+  getMe: () => axiosClient.get("/auth/me"), 
 };
 
 /* ============================
@@ -41,6 +41,8 @@ export const patientApi = {
   getById: (id) => axiosClient.get(`/users/${id}`),
   
   updateMe: (data) => axiosClient.put("/patients/me", data),
+  getbyId: (id) => axiosClient.get(`/users/${id}`)// xoá user bệnh nhân
+
 };
 
 /* ============================

@@ -3,7 +3,6 @@ import Introduction from "../../../components/Layouts/ClientLayout/Introduction/
 import Hero from "../../../components/sections/hero/hero";
 import styles from "./style.module.scss";
 import { introData } from "../../../data/constant";
-import ChatWidget from "../ChatWidget/ChatWidget";
 
 const HomePage = () => {
   return (
@@ -21,7 +20,6 @@ const HomePage = () => {
             buttons={item.buttons}
           />
         ))}
-        <ChatWidget />
       </div>
     </>
   );

@@ -34,4 +34,16 @@ const StatsCardCustom = ({ title, stats }) => {
   );
 };
 
-export { StatsCard, StatsCardCustom };
+const StatsCardSmall = ({ icon, title, value }) => {
+  return (
+    <div className={styles.wrapper__smalls}>
+      <div className={styles.small__icon}>{icon}</div>
+      <div className={styles.small__content}>
+        <span className={styles.smallTitle}>{title}</span>
+        <p className={styles.small__value}>{value}</p>
+      </div>
+    </div>
+  );
+};
+
+export { StatsCard, StatsCardCustom, StatsCardSmall };
