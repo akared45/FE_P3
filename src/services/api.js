@@ -41,6 +41,7 @@ export const patientApi = {
   getById: (id) => axiosClient.get(`/users/${id}`),
 
   updateMe: (data) => axiosClient.put("/patients/me", data),
+
   getbyId: (id) => axiosClient.get(`/users/${id}`), // xoá user bệnh nhân
 };
 
@@ -62,15 +63,20 @@ export const adminApi = {
 };
 
 export const appointmentApi = {
-  book(data) {
-    return axiosClient.post("/appointments", data);
-  },
+  book: (data) => axiosClient.post("/appointments", data),
+
+  getMyAppointments: () => axiosClient.get("/appointments"),
 };
 
 export const aiApi = {
   suggest: (data) => axiosClient.post("/ai/suggest", data),
 };
 
+export const chatApi = {
+  getHistory: (appointmentId) => axiosClient.get(`/chat/${appointmentId}`),
+
+  send: (data) => axiosClient.post("/chat/send", data),
+};
 /* ============================
    UPLOAD API
 ============================ */

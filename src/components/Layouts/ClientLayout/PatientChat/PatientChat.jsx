@@ -1,180 +1,145 @@
 import { useState, useEffect, useRef } from "react";
-import styles from "./style.module.scss";
+import styles from "./style.module.scss"; 
 import { IoChatbubblesOutline } from "react-icons/io5";
+import { appointmentApi } from "../../../../services/api";
+import { useChat } from "../../../../hooks/useChat";
 
-// Mock danh sách phòng
-const rooms = [
-  { id: 1, name: "Phòng tư vấn 1" },
-  { id: 2, name: "Phòng tư vấn 2" },
-  { id: 3, name: "Phòng tư vấn 3" },
-];
-
-export default function PatientChat({ onOpen, onClose }) {
+export default function PatientChat() {
   const [open, setOpen] = useState(false);
-  const [minimized, setMinimized] = useState(false);
-
-  const [activeRoom, setActiveRoom] = useState(null);
-  const [message, setMessage] = useState("");
-
-  // Tin nhắn theo từng phòng
-  const [messages, setMessages] = useState(() => rooms.map(() => []));
-
+  
+  const [appointments, setAppointments] = useState([]); 
+  
+  const [activeId, setActiveId] = useState(null); 
+  
+  const [text, setText] = useState("");
+  const [myId, setMyId] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Báo cho Layout biết để ẩn chat còn lại
-  useEffect(() => {
-    if (open && !minimized) onOpen?.("patient");
-    if (!open) onClose?.("patient");
-  }, [open, minimized]);
+  const { messages, sendMessage, loading } = useChat(activeId);
 
-  // Auto scroll
   useEffect(() => {
-    if (open && !minimized) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    setMyId(user.id || user._id);
+
+    if (open) {
+      appointmentApi.getMyAppointments()
+        .then((res) => {
+          console.log("Dữ liệu API trả về:", res);
+          const validApps = res.data.filter(a => 
+            ['confirmed', 'in_progress'].includes(a.status)
+          );
+          setAppointments(validApps);
+        })
+        .catch(err => console.error("Lỗi lấy danh sách:", err));
     }
-  }, [messages, activeRoom, open, minimized]);
+  }, [open]);
 
-  const joinRoom = () => {
-    if (activeRoom === null) setActiveRoom(0);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, open]);
+
+  const handleSend = () => {
+    console.log("1. Đã bấm nút gửi. Text:", text); // <--- Log 1
+    console.log("2. Active ID:", activeId);        // <--- Log 2
+
+    if (!text.trim()) {
+        console.log("Lỗi: Text rỗng");
+        return;
+    }
+    
+    sendMessage(text); 
+    console.log("3. Đã gọi hàm sendMessage từ Hook"); // <--- Log 3
+    setText("");
   };
 
-  const sendMessage = () => {
-    if (!message.trim() || activeRoom === null) return;
-
-    const copy = [...messages];
-    copy[activeRoom].push({
-      from: "patient",
-      text: message,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      avatar: "/avatars/patient.png",
-    });
-
-    setMessages(copy);
-    setMessage("");
-
-    // Auto reply mô phỏng
-    setTimeout(() => {
-      const reply = [...copy];
-      reply[activeRoom].push({
-        from: "doctor",
-        text: "Bác sĩ đã nhận được tin nhắn của bạn!",
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        avatar: "/avatars/doctor.png",
-      });
-      setMessages(reply);
-    }, 800);
-  };
+  // Tìm thông tin phòng đang chọn để hiển thị trên Header
+  const activeRoom = appointments.find(a => a.id === activeId);
 
   return (
     <>
-      {/* NÚT NỔI */}
-      {(!open || minimized) && (
-        <button
-          className={styles.floatingBtn}
-          onClick={() => {
-            setOpen(true);
-            setMinimized(false);
-            onOpen?.("patient");
-          }}
-        >
+      {/* Nút Chat Tròn */}
+      {!open && (
+        <button className={styles.floatingBtn} onClick={() => setOpen(true)}>
           <IoChatbubblesOutline className={styles.floatingIcon} />
         </button>
       )}
 
-      {/* POPUP */}
-      {open && !minimized && (
+      {/* Popup Chat */}
+      {open && (
         <div className={styles.chatPopup}>
           <div className={styles.chatBox}>
             
-            {/* HEADER */}
+            {/* --- HEADER --- */}
             <header className={styles.header}>
               <div className={styles.headerTitle}>
-                {activeRoom !== null ? rooms[activeRoom].name : "Chat với bác sĩ"}
+                {/* Nếu đã chọn phòng thì hiện tên Bác sĩ, chưa thì hiện tiêu đề chung */}
+                {activeRoom ? `${activeRoom.doctorName}` : "Danh sách Bác sĩ"}
               </div>
-
-              <div className={styles.headerRight}>
-                <button className={styles.minimizeBtn} onClick={() => setMinimized(true)}>
-                  ─
-                </button>
-                <button className={styles.closeBtn} onClick={() => setOpen(false)}>
-                  ✕
-                </button>
-              </div>
+              <button className={styles.closeBtn} onClick={() => setOpen(false)}>✕</button>
             </header>
 
             <div className={styles.body3col}>
-
-              {/* SIDEBAR TRÁI */}
-              <aside className={styles.roomSidebar}>
-                <div className={styles.roomHeader}>Danh sách phòng</div>
-
-                <button className={styles.joinBtn} onClick={joinRoom}>
-                  + Tham gia phòng
-                </button>
-
-                <div className={styles.roomList}>
-                  {rooms.map((r, i) => (
-                    <div
-                      key={i}
-                      className={`${styles.roomItem} ${
-                        activeRoom === i ? styles.activeRoom : ""
-                      }`}
-                      onClick={() => setActiveRoom(i)}
-                    >
-                      {r.name}
-                    </div>
-                  ))}
-                </div>
+              
+              {/* --- SIDEBAR TRÁI (DANH SÁCH) --- */}
+              <aside className={styles.roomSidebar} style={{width: '30%'}}>
+                {appointments.length === 0 && <p style={{padding:10, fontSize:12}}>Chưa có lịch hẹn.</p>}
+                
+                {appointments.map(app => (
+                  <div 
+                    key={app.id} 
+                    // Nếu ID này đang active thì thêm class active
+                    className={`${styles.roomItem} ${activeId === app.id ? styles.activeRoom : ''}`}
+                    // Bấm vào thì set Active ID -> Hook useChat sẽ chạy lại
+                    onClick={() => setActiveId(app.id)}
+                  >
+                    {/* Hiển thị tên Bác sĩ từ API */}
+                    <div className={styles.roomName}>{app.doctorName}</div>
+                    
+                    {/* Hiển thị ngày khám */}
+                    <small className={styles.roomDate}>
+                        {new Date(app.appointmentDate).toLocaleDateString('vi-VN')}
+                    </small>
+                  </div>
+                ))}
               </aside>
 
-              {/* KHU VỰC CHAT */}
-              <section className={styles.chatPanel}>
+              {/* --- KHUNG CHAT (PHẢI) --- */}
+              <section className={styles.chatPanel} style={{width: '70%'}}>
                 <div className={styles.messages}>
-                  {activeRoom === null ? (
-                    <div className={styles.welcome}>
-                      Vui lòng chọn hoặc tham gia phòng để chat.
-                    </div>
+                  {!activeId ? (
+                    <div className={styles.welcome}>Vui lòng chọn một bác sĩ để chat.</div>
                   ) : (
                     <>
-                      {messages[activeRoom].map((m, i) => (
-                        <div
-                          key={i}
-                          className={`${styles.messageRow} ${
-                            m.from === "patient" ? styles.msgMe : styles.msgDoctor
-                          }`}
-                        >
-                          {m.from !== "patient" && (
-                            <img src={m.avatar} className={styles.msgAvatar} />
-                          )}
-
-                          <div>
-                            <div className={styles.msgBubble}>{m.text}</div>
-                            <div className={styles.msgTime}>{m.time}</div>
+                      {loading && <p style={{textAlign:'center', fontSize:12, color:'#888'}}>Đang tải tin nhắn...</p>}
+                      
+                      {messages.map((msg, i) => {
+                        // Kiểm tra tin nhắn của mình hay người khác
+                        const isMe = msg.senderId === myId;
+                        return (
+                          <div key={i} className={`${styles.messageRow} ${isMe ? styles.msgMe : styles.msgDoctor}`}>
+                            {!isMe && <img src="/avatars/doctor.png" className={styles.msgAvatar} />}
+                            <div className={styles.msgBubble}>{msg.content}</div>
                           </div>
-                        </div>
-                      ))}
-
+                        )
+                      })}
                       <div ref={messagesEndRef} />
                     </>
                   )}
                 </div>
 
-                {/* INPUT */}
-                <div className={styles.footer}>
-                  <button className={styles.attachBtn}>📎</button>
-
-                  <input
-                    className={styles.input}
-                    placeholder="Nhập tin nhắn..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  />
-
-                  <button className={styles.sendBtn} onClick={sendMessage}>
-                    Gửi
-                  </button>
-                </div>
+                {/* Input chỉ hiện khi đã chọn phòng */}
+                {activeId && (
+                  <div className={styles.footer}>
+                    <input 
+                      className={styles.input} 
+                      value={text} 
+                      onChange={e => setText(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleSend()}
+                      placeholder="Nhập tin nhắn..."
+                    />
+                    <button className={styles.sendBtn} onClick={handleSend}>Gửi</button>
+                  </div>
+                )}
               </section>
             </div>
           </div>

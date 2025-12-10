@@ -14,14 +14,12 @@ const ChatWidget = () => {
   const sendMessage = async () => {
     if (!text.trim()) return;
 
-    // Thêm tin nhắn user
     const userMessage = { from: "user", text };
     setMessages([...messages, userMessage]);
     setText("");
     setLoading(true);
 
     try {
-      // Gọi API AI
       const response = await aiApi.suggest({ prompt: text });
       const aiMessage = {
         from: "doctor",
@@ -50,7 +48,6 @@ const ChatWidget = () => {
       {open && (
         <div className={styles.overlay}>
           <div className={styles.chatBox}>
-            {/* Header */}
             <div className={styles.header}>
               <span className={styles.headerTitle}>Chat với bác sĩ</span>
               <button

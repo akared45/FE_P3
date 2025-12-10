@@ -1,232 +1,166 @@
 import { useState, useEffect, useRef } from "react";
 import styles from "./style.module.scss";
 import { IoChatbubblesOutline } from "react-icons/io5";
-import { patients } from "@components/mock/patients.js";
+import { appointmentApi } from "../../../../services/api";
+import { useChat } from "../../../../hooks/useChat";
 
-export default function DoctorChat({ onOpen, onClose }) {
+export default function DoctorChat() {
   const [open, setOpen] = useState(false);
-  const [minimized, setMinimized] = useState(false);
-  const [activePatient, setActivePatient] = useState(0);
-  const [message, setMessage] = useState("");
 
-  // DANH SÁCH TIN NHẮN THEO TỪNG BỆNH NHÂN
-  const [messages, setMessages] = useState(() => patients.map(() => []));
+  const [appointments, setAppointments] = useState([]);
 
-  // GHI CHÚ THEO MỖI BỆNH NHÂN
-  const [notes, setNotes] = useState(() => patients.map(() => ""));
+  const [activeId, setActiveId] = useState(null);
 
+  const [text, setText] = useState("");
+  const [myId, setMyId] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // thông báo ra ngoài để cha ẩn Chat khác
+  const { messages, sendMessage, loading } = useChat(activeId);
+
   useEffect(() => {
-    if (open && !minimized) {
-      onOpen?.("doctor"); // 🔥 BÁO RA NGOÀI
-    }
-    if (!open) {
-      onClose?.("doctor"); // 🔥 BÁO RA NGOÀI
-    }
-  }, [open, minimized]);
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    setMyId(user.id || user._id);
 
-  // auto scroll khi có tin nhắn mới
+    if (open) {
+      appointmentApi.getMyAppointments()
+        .then((res) => {
+          const validApps = res.data.filter(a =>
+            ['confirmed', 'in_progress', 'completed'].includes(a.status)
+          );
+          setAppointments(validApps);
+        })
+        .catch(err => console.error("Lỗi tải danh sách:", err));
+    }
+  }, [open]);
+
   useEffect(() => {
-    if (open && !minimized) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, activePatient, open, minimized]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, open]);
 
-  const sendMessage = () => {
-    if (!message.trim()) return;
-
-    const copy = [...messages];
-    copy[activePatient].push({
-      from: "doctor",
-      text: message,
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      avatar: "/avatars/doctor.png",
-    });
-
-    setMessages(copy);
-    setMessage("");
-
-    // mô phỏng bệnh nhân trả lời
-    setTimeout(() => {
-      const reply = [...copy];
-      reply[activePatient].push({
-        from: "patient",
-        text: "Dạ bác sĩ, em hiểu ạ!",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        avatar: patients[activePatient].avatar,
-      });
-      setMessages(reply);
-    }, 900);
+  const handleSend = () => {
+    if (!text.trim()) return;
+    sendMessage(text);
+    setText("");
   };
+
+  const activeApp = appointments.find(a => a.id === activeId);
 
   return (
     <>
-      {/* ICON NỔI */}
-      {(!open || minimized) && (
-        <button
-          className={styles.floatingBtn}
-          onClick={() => {
-            setOpen(true);
-            setMinimized(false);
-            onOpen?.("doctor"); // báo mở popup
-          }}
-        >
+      {!open && (
+        <button className={styles.floatingBtn} onClick={() => setOpen(true)}>
           <IoChatbubblesOutline className={styles.floatingIcon} />
         </button>
       )}
 
-      {/* POPUP */}
-      {open && !minimized && (
+      {open && (
         <div className={styles.chatPopup}>
           <div className={styles.chatBox}>
-            {/* HEADER */}
-            <header className={styles.header}>
-              <div>
-                <div className={styles.headerTitle}>
-                  Phòng tư vấn #{activePatient + 1}
-                </div>
-                <div className={styles.headerSubtitle}>
-                  {patients[activePatient].name} — {patients[activePatient].symptom}
-                </div>
-              </div>
 
-              <div className={styles.headerRight}>
-                <button
-                  className={styles.minimizeBtn}
-                  onClick={() => setMinimized(true)}
-                >
-                  ─
-                </button>
-                <button
-                  className={styles.closeBtn}
-                  onClick={() => setOpen(false)}
-                >
-                  ✕
-                </button>
+            <header className={styles.header}>
+              <div className={styles.headerTitle}>
+                {activeApp ? `BN. ${activeApp.patientName}` : "Phòng Tư Vấn Trực Tuyến"}
               </div>
+              <button className={styles.closeBtn} onClick={() => setOpen(false)}>✕</button>
             </header>
 
-            {/* BODY 3 CỘT */}
             <div className={styles.body3col}>
-              {/* LEFT SIDEBAR */}
+
               <aside className={styles.roomSidebar}>
-                <div className={styles.roomHeader}>Danh sách phòng</div>
+                <div className={styles.roomHeader}>Bệnh nhân chờ</div>
 
-                <button className={styles.joinBtn}>+ Tham gia</button>
+                {appointments.length === 0 && <p style={{ padding: 10, fontSize: 12 }}>Chưa có lịch hẹn.</p>}
 
-                <div className={styles.roomList}>
-                  {patients.map((p, i) => (
-                    <div
-                      key={i}
-                      className={styles.roomItem}
-                      onClick={() => setActivePatient(i)}
-                    >
-                      Phòng tư vấn #{i + 1}
+                {appointments.map(app => (
+                  <div
+                    key={app.id}
+                    className={`${styles.roomItem} ${activeId === app.id ? styles.activeRoom : ''}`}
+                    onClick={() => setActiveId(app.id)}
+                  >
+                    <div className={styles.roomName}>{app.patientName}</div>
+
+                    <small style={{ color: '#666', fontSize: 11 }}>
+                      {app.symptoms ? app.symptoms.substring(0, 25) + '...' : 'Không có triệu chứng'}
+                    </small>
+                    <div style={{ fontSize: 10, color: '#999', marginTop: 2 }}>
+                      {new Date(app.appointmentDate).toLocaleDateString('vi-VN')}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </aside>
-
-              {/* CHAT CENTER */}
               <section className={styles.chatPanel}>
                 <div className={styles.messages}>
-                  {messages[activePatient].length === 0 && (
-                    <div className={styles.welcome}>
-                      Xin chào {patients[activePatient].name}, bác sĩ có thể hỗ trợ gì cho bạn?
-                    </div>
+                  {!activeId ? (
+                    <div className={styles.welcome}>Chọn bệnh nhân để bắt đầu tư vấn.</div>
+                  ) : (
+                    <>
+                      {loading && <p style={{ textAlign: 'center', fontSize: 12, color: '#888' }}>Đang tải...</p>}
+
+                      {messages.map((msg, i) => {
+                        const isMe = msg.senderId === myId;
+                        return (
+                          <div key={i} className={`${styles.messageRow} ${isMe ? styles.msgMe : styles.msgDoctor}`}>
+
+                            {!isMe && <img src="/avatars/patient.png" className={styles.msgAvatar} alt="pat" />}
+
+                            <div>
+                              <div className={styles.msgBubble}>{msg.content}</div>
+                              <div className={styles.msgTime}>
+                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                      <div ref={messagesEndRef} />
+                    </>
                   )}
-
-                  {messages[activePatient].map((m, i) => (
-                    <div
-                      key={i}
-                      className={`${styles.messageRow} ${
-                        m.from === "doctor" ? styles.msgMe : styles.msgDoctor
-                      }`}
-                    >
-                      {m.from !== "doctor" && (
-                        <img src={m.avatar} className={styles.msgAvatar} />
-                      )}
-
-                      <div>
-                        <div className={styles.msgBubble}>{m.text}</div>
-                        <div className={styles.msgTime}>{m.time}</div>
-                      </div>
-                    </div>
-                  ))}
-
-                  <div ref={messagesEndRef} />
                 </div>
-
-                {/* FOOTER INPUT */}
-                <div className={styles.footer}>
-                  <button className={styles.attachBtn}>📎</button>
-
-                  <input
-                    className={styles.input}
-                    placeholder="Nhập tin nhắn..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  />
-
-                  <button className={styles.sendBtn} onClick={sendMessage}>
-                    Gửi
-                  </button>
-                </div>
+                {activeId && (
+                  <div className={styles.footer}>
+                    <input
+                      className={styles.input}
+                      value={text}
+                      onChange={e => setText(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleSend()}
+                      placeholder="Nhập lời khuyên..."
+                    />
+                    <button className={styles.sendBtn} onClick={handleSend}>Gửi</button>
+                  </div>
+                )}
               </section>
-
-              {/* RIGHT SIDEBAR */}
               <aside className={styles.infoSidebar}>
-                <div className={styles.infoHeader}>Thông tin bệnh nhân</div>
+                <div className={styles.infoHeader}>Thông tin ca bệnh</div>
 
-                <div className={styles.patientCard}>
-                  <img
-                    src={patients[activePatient].avatar}
-                    className={styles.infoAvatar}
-                  />
-                  <div className={styles.infoName}>
-                    {patients[activePatient].name}
+                {activeApp ? (
+                  <div style={{ padding: 15, fontSize: 13 }}>
+                    <div style={{ fontWeight: 'bold', fontSize: 15, marginBottom: 5 }}>
+                      {activeApp.patientName}
+                    </div>
+                    <div style={{ color: '#555', marginBottom: 15 }}>
+                      Mã hồ sơ: {activeApp.patientId}
+                    </div>
+
+                    <hr style={{ border: '0.5px solid #eee' }} />
+
+                    <p style={{ marginTop: 10 }}><strong>Triệu chứng:</strong></p>
+                    <p style={{ background: '#f9f9f9', padding: 8, borderRadius: 5, marginTop: 5 }}>
+                      {activeApp.symptoms || "Chưa ghi nhận"}
+                    </p>
+
+                    <p style={{ marginTop: 15 }}><strong>Ghi chú nhanh:</strong></p>
+                    <textarea
+                      style={{ width: '100%', height: 80, marginTop: 5, padding: 5, borderColor: '#ddd' }}
+                      placeholder="Ghi chú cá nhân của bác sĩ..."
+                    />
                   </div>
-                  <div className={styles.infoSymptom}>
-                    {patients[activePatient].symptom}
+                ) : (
+                  <div style={{ padding: 15, color: '#888', fontSize: 13, textAlign: 'center' }}>
+                    Chọn bệnh nhân để xem hồ sơ.
                   </div>
-                </div>
-
-                <div className={styles.infoTabs}>
-                  <button className={styles.infoTab}>Hồ sơ khám</button>
-                  <button className={styles.infoTab}>Kê đơn</button>
-                  <button className={styles.infoTab}>Tiền sử</button>
-                  <button className={styles.infoTab}>Chỉ định</button>
-                </div>
-
-                {/* NOTES */}
-                <div className={styles.notesBox}>
-                  <div className={styles.notesHeader}>Ghi chú của bác sĩ</div>
-
-                  <textarea
-                    className={styles.notesInput}
-                    placeholder="Nhập ghi chú lâm sàng..."
-                    value={notes[activePatient]}
-                    onChange={(e) => {
-                      const copy = [...notes];
-                      copy[activePatient] = e.target.value;
-                      setNotes(copy);
-                    }}
-                  />
-                </div>
-
-                <div className={styles.infoContent}>
-                  <p>— Chọn mục để xem chi tiết —</p>
-                </div>
+                )}
               </aside>
+
             </div>
           </div>
         </div>
