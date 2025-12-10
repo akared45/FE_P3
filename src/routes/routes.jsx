@@ -16,6 +16,7 @@ import DoctorDetail from "../pages/Client/DoctorPage/DoctorDetail";
 import ProfilePatient from "../pages/Client/Profile/ProfilePatient";
 import AdminSchedule from "../pages/Admin/Schedule/AdminSchedule";
 import Specialty from "../pages/Admin/Specialty/Specialty";
+import Contact from "../pages/Client/Contact/Contact";
 
 const routes = [
   {
@@ -26,6 +27,7 @@ const routes = [
       { path: "doi-ngu-bac-si", element: <DoctorPage /> },
       { path: "profile", element: <ProfilePatient /> },
       { path: "ve-chung-toi", element: <AboutUsPage /> },
+      { path: "lien-he", element: <Contact /> },
       { path: "dang-nhap", element: <Login /> },
       { path: "dang-ky", element: <Register /> },
       { path: "bac-si/:id", element: <DoctorDetail /> },

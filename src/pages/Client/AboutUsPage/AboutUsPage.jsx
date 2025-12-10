@@ -1,7 +1,17 @@
-import React from "react";
+import HeroSection from "./HeroSection";
+import StatsSection from "./StatsSection";
+import FeaturesSection from "./FeaturesSection";
+import DoctorsSection from "./DoctorsSection";
+import CTASection from "./CTASection";
 
-const AboutUs = () => {
-  return <div>đây là trang about</div>;
-};
-
-export default AboutUs;
+export default function AboutUs(){
+  return (
+    <>
+      <HeroSection/>
+      <StatsSection/>
+      <FeaturesSection/>
+      <DoctorsSection/>
+      <CTASection/>
+    </>
+  );
+}
