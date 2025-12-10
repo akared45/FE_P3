@@ -20,7 +20,6 @@ export const UserProvider = ({ children }) => {
       setLoadingDoctors(true);
       const res = await doctorApi.getAll();
       setDoctors(res.data);
-      console.log("res doctor", res);
     } catch (err) {
       console.error(err);
     } finally {

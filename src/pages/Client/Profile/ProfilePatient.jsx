@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from "react";
 import styles from "./style.module.scss";
-import {patientApi} from "../../../services/api"
+import { uploadApi, patientApi } from "../../../services/api";
 import TextFields from "@components/ui/TextFields";
 import Button from "@components/ui/Button";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
-  const [formData, setFormData] = useState({});
   const [avatarPreview, setAvatarPreview] = useState(null);
 
   // Lấy thông tin user
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const id = localStorage.getItem("userId"); // Lưu khi login
+        const user = JSON.parse(localStorage.getItem("user"));
+        const id = user.id;
         const { data } = await patientApi.getUserById(id);
         setProfile(data);
-        setFormData(data);
       } catch (error) {
         console.error("Error fetching profile", error);
       }
@@ -27,46 +28,26 @@ const Profile = () => {
 
   if (!profile) return <p>Đang tải...</p>;
 
+  // Validation schema với Yup
+  const validationSchema = Yup.object({
+    fullName: Yup.string().required("Họ và tên là bắt buộc"),
+    phone: Yup.string().required("Số điện thoại là bắt buộc"),
+    address: Yup.string().required("Địa chỉ là bắt buộc"),
+  });
+
   // Upload avatar
-  const handleAvatarChange = async (e) => {
+  const handleAvatarChange = async (e, setFieldValue) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const preview = URL.createObjectURL(file);
     setAvatarPreview(preview);
 
-    const form = new FormData();
-    form.append("avatar", file);
-
     try {
-      const { data } = await userApi.uploadAvatar(form);
-      setFormData((prev) => ({ ...prev, avatarUrl: data.avatarUrl }));
+      const { data } = await uploadApi.uploadImage(file);
+      setFieldValue("avatarUrl", data.url); // giả sử API trả về data.url
     } catch (error) {
       console.error("Upload avatar failed", error);
-    }
-  };
-
-  // Nhập text input
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Lưu thông tin
-  const saveProfile = async () => {
-    try {
-      const update = {
-        fullName: formData.fullName,
-        address: formData.address,
-        phone: formData.phone,
-      };
-
-      await userApi.updateMe(update);
-
-      setProfile(formData);
-      setEditing(false);
-    } catch (error) {
-      console.error("Error updating profile", error);
     }
   };
 
@@ -74,77 +55,107 @@ const Profile = () => {
     <div className={styles.profile}>
       <h2>Hồ sơ cá nhân</h2>
 
-      <div className={styles.profileInfo}>
-        {/* AVATAR */}
-        <div className={styles.avatarSection}>
-          <img
-            src={avatarPreview || formData.avatarUrl || "/default-avatar.png"}
-            alt="avatar"
-            className={styles.avatar}
-          />
+      <Formik
+        enableReinitialize
+        initialValues={profile}
+        validationSchema={validationSchema}
+        onSubmit={async (values) => {
+          try {
+            const update = {
+              fullName: values.fullName,
+              phone: values.phone,
+              address: values.address,
+              avatarUrl: values.avatarUrl,
+            };
+            await patientApi.updateMe(update);
+            setProfile(values);
+            setEditing(false);
+            setAvatarPreview(null);
+          } catch (error) {
+            console.error("Error updating profile", error);
+          }
+        }}
+      >
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          setFieldValue,
+        }) => (
+          <Form className={styles.profileInfo}>
+            {/* Avatar */}
+            <div className={styles.avatarSection}>
+              <img
+                src={avatarPreview || values.avatarUrl || "/default-avatar.png"}
+                alt="avatar"
+                className={styles.avatar}
+              />
+              {editing && (
+                <label className={styles.uploadButton}>
+                  Chọn ảnh mới
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleAvatarChange(e, setFieldValue)}
+                  />
+                </label>
+              )}
+            </div>
 
-          {editing && (
-            <label className={styles.uploadButton}>
-              Chọn ảnh mới
-              <input type="file" accept="image/*" onChange={handleAvatarChange} />
-            </label>
-          )}
-        </div>
+            {/* Form fields */}
+            <div className={styles.infoSection}>
+              <TextFields
+                label="Họ và tên"
+                name="fullName"
+                formik={{ values, errors, touched, handleChange, handleBlur }}
+                disabled={!editing}
+              />
 
-        {/* FORM */}
-        <div className={styles.infoSection}>
-          <TextFields
-            label="Họ và tên"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleInputChange}
-            disabled={!editing}
-          />
+              <TextFields
+                label="Email"
+                name="email"
+                value={values.email}
+                disabled
+              />
 
-          <TextFields
-            label="Email"
-            name="email"
-            value={formData.email}
-            disabled
-          />
+              <TextFields
+                label="Số điện thoại"
+                name="phone"
+                formik={{ values, errors, touched, handleChange, handleBlur }}
+                disabled={!editing}
+              />
 
-          <TextFields
-            label="Số điện thoại"
-            name="phone"
-            value={formData.phone || ""}
-            onChange={handleInputChange}
-            disabled={!editing}
-          />
+              <TextFields
+                label="Địa chỉ"
+                name="address"
+                formik={{ values, errors, touched, handleChange, handleBlur }}
+                disabled={!editing}
+              />
+            </div>
 
-          <TextFields
-            label="Địa chỉ"
-            name="address"
-            value={formData.address || ""}
-            onChange={handleInputChange}
-            disabled={!editing}
-          />
-        </div>
-      </div>
-
-      {/* BUTTONS */}
-      <div className={styles.actions}>
-        {editing ? (
-          <>
-            <Button content="Lưu lại" onClick={saveProfile} />
-            <Button
-              content="Hủy"
-              mode="secondary"
-              onClick={() => {
-                setEditing(false);
-                setFormData(profile);
-                setAvatarPreview(null);
-              }}
-            />
-          </>
-        ) : (
-          <Button content="Chỉnh sửa" onClick={() => setEditing(true)} />
+            {/* Buttons */}
+            <div className={styles.actions}>
+              {editing ? (
+                <>
+                  <Button content="Lưu lại" type="submit" />
+                  <Button
+                    content="Hủy"
+                    mode="secondary"
+                    onClick={() => {
+                      setEditing(false);
+                      setAvatarPreview(null);
+                    }}
+                  />
+                </>
+              ) : (
+                <Button content="Chỉnh sửa" onClick={() => setEditing(true)} />
+              )}
+            </div>
+          </Form>
         )}
-      </div>
+      </Formik>
     </div>
   );
 };

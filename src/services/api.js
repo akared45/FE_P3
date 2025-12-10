@@ -38,7 +38,7 @@ export const patientApi = {
 
   delete: (id) => axiosClient.delete(`/admin/users/${id}`),
 
-  getById: (id) => axiosClient.get(`/users/${id}`),
+  getUserById: (id) => axiosClient.get(`/users/${id}`),
 
   updateMe: (data) => axiosClient.put("/patients/me", data),
 
