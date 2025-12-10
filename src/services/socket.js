@@ -17,8 +17,8 @@ socket.on("connect_error", (err) => {
 });
 
 export const connectSocket = (token) => {
-  socket.io.opts.autoConnect = true;
   if (token) {
+    socket.io.opts.reconnection = true;
     socket.auth = { token };
     if (!socket.connected) {
       socket.connect();
@@ -30,8 +30,9 @@ export const connectSocket = (token) => {
 
 export const disconnectSocket = () => {
   if (socket.connected) {
-    socket.auth = {};
+    socket.auth = null;
+    socket.io.opts.reconnection = false;
     socket.disconnect();
-    socket.io.opts.autoConnect = false;
+    socket.removeAllListeners();
   }
 };

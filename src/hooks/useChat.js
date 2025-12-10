@@ -7,9 +7,14 @@ export const useChat = (appointmentId) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!appointmentId) {
-      setMessages([]);
-      return;
+    if (!appointmentId) return;
+    if (!socket.connected) {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        console.log("🔌 UseChat: Kích hoạt kết nối...");
+        socket.auth = { token };
+        socket.connect();
+      }
     }
 
     const initChat = async () => {
@@ -17,33 +22,30 @@ export const useChat = (appointmentId) => {
       try {
         const res = await chatApi.getHistory(appointmentId);
         setMessages(res.data || []);
-
-        const joinRoom = () => {
-          if (socket.connected) {
-            socket.emit("join_appointment", appointmentId);
-          }
-        };
-        joinRoom();
-        socket.on("connect", joinRoom);
-
-        return () => {
-          socket.off("connect", joinRoom);
-          if (socket.connected) {
-            socket.emit("leave_appointment", appointmentId);
-          }
-        };
       } catch (err) {
         console.error("Lỗi tải lịch sử chat:", err);
       } finally {
         setLoading(false);
       }
     };
-
+    console.log(`🔌 UseChat: Requesting Join ${appointmentId}`);
+    socket.emit("join_appointment", appointmentId);
     initChat();
+    const onConnect = () => {
+      console.log("Re-connected -> Re-joining room");
+      socket.emit("join_appointment", appointmentId);
+    };
+    socket.on("connect", onConnect);
+    return () => {
+      socket.off("connect", onConnect);
+      console.log(`👋 UseChat: Leaving ${appointmentId}`);
+      socket.emit("leave_appointment", appointmentId);
+    };
   }, [appointmentId]);
 
   useEffect(() => {
     if (!appointmentId) return;
+
     const handleNewMessage = (newMessage) => {
       if (newMessage.appointmentId === appointmentId) {
         setMessages((prev) => {
@@ -53,10 +55,9 @@ export const useChat = (appointmentId) => {
         });
       }
     };
+
     socket.on("receive_message", handleNewMessage);
-    return () => {
-      socket.off("receive_message", handleNewMessage);
-    };
+    return () => socket.off("receive_message", handleNewMessage);
   }, [appointmentId]);
 
   const sendMessage = useCallback((content) => {
@@ -64,10 +65,7 @@ export const useChat = (appointmentId) => {
 
     if (!socket.connected) {
       const token = localStorage.getItem("accessToken");
-      if (token) {
-        socket.auth = { token };
-        socket.connect();
-      }
+      if (token) { socket.auth = { token }; socket.connect(); }
     }
 
     socket.emit("send_message", {
