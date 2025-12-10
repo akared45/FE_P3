@@ -34,7 +34,6 @@ const pages = [
   { content: "Liên hệ", to: "/lien-he" },
 ];
 
-// ⚠️ Sửa key trùng, dùng id
 const settings = [
   {
     id: 1,
