@@ -30,7 +30,7 @@ const Header = () => {
     };
     fetchProfile();
   }, [user?.id]);
-
+  
   return (
     <>
       <AppBar

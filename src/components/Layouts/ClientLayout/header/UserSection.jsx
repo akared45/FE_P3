@@ -1,19 +1,28 @@
 import { useState } from "react";
-import { Box, Button, IconButton, Tooltip, Avatar, Menu, MenuItem, Divider, Typography, Badge } from "@mui/material";
+import { Box, Button, IconButton, Tooltip, Avatar, Menu, MenuItem, Divider, Typography, Badge, Skeleton } from "@mui/material";
 import { Notifications as BellIcon } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { settings } from "./menuData"
+import { settings } from "./menuData";
 
 const UserSection = ({ user, isLoggedIn, onLogoutRequest }) => {
   const [anchorElUser, setAnchorElUser] = useState(null);
 
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseUserMenu = () => setAnchorElUser(null);
+
   const getAvatarUrl = (url) => {
     if (!url) return "";
     if (url.startsWith("http")) return url;
     return "http://localhost:3000" + url;
   };
+
+  if (isLoggedIn && !user) {
+      return (
+        <Box sx={{ display: 'flex', gap: 2 }}>
+            <Skeleton variant="circular" width={40} height={40} />
+        </Box>
+      );
+  }
   const userInitials = user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U";
 
   return (
@@ -38,7 +47,8 @@ const UserSection = ({ user, isLoggedIn, onLogoutRequest }) => {
           <Tooltip title="Tài khoản">
             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
               <Avatar
-                alt={user?.fullName} src={getAvatarUrl(user.avatarUrl)}
+                alt={user?.fullName || "User"} 
+                src={getAvatarUrl(user?.avatarUrl)} 
                 sx={{ bgcolor: 'primary.main', border: '2px solid white', boxShadow: '0 0 0 2px #e3f2fd' }}
               >
                 {userInitials}
@@ -62,8 +72,12 @@ const UserSection = ({ user, isLoggedIn, onLogoutRequest }) => {
             }}
           >
             <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>{user.fullName}</Typography>
-              <Typography variant="body2" color="text.secondary" noWrap sx={{ fontSize: '0.8rem' }}>{user.email}</Typography>
+              <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
+                {user?.fullName || "Người dùng"}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" noWrap sx={{ fontSize: '0.8rem' }}>
+                {user?.email || ""}
+              </Typography>
             </Box>
             <Divider />
 
