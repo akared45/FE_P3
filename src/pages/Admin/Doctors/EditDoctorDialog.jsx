@@ -36,6 +36,7 @@ const DAYS_OF_WEEK = [
 ];
 
 const EditDoctorDialog = ({ open, onClose, doctorData, onSuccess }) => {
+  console.log(doctorData);
   const [loading, setLoading] = useState(false);
   const [specializations, setSpecializations] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -52,12 +53,12 @@ const EditDoctorDialog = ({ open, onClose, doctorData, onSuccess }) => {
   });
 
   useEffect(() => {
-    if (open && doctorData) {
+    if (open && doctorData.id) {
       const fetchData = async () => {
         try {
           const [specsRes, doctorRes] = await Promise.all([
             specApi.getAll(),
-            doctorApi.getById(doctorData),
+            doctorApi.getById(doctorData.id),
           ]);
           const specs = specsRes.data || specsRes;
           setSpecializations(specs);
@@ -192,7 +193,7 @@ const EditDoctorDialog = ({ open, onClose, doctorData, onSuccess }) => {
           to: w.to ? w.to : null,
         })),
       };
-      await doctorApi.update(doctorData, payload);
+      await doctorApi.update(doctorData.id, payload);
       alert("Cập nhật thành công!");
       onSuccess();
       onClose();

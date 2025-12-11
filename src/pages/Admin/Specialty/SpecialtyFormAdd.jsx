@@ -19,11 +19,11 @@ const SpecialtyFormAdd = ({ onClose }) => {
     onSubmit: async (values) => {
       try {
         const payload = {
-          _id: values.code,
+          code: values.code,
           name: values.name,
           category: values.category,
         };
-        const res = await specApi.update(values.code, payload);
+        const res = await specApi.addNew(payload);
         console.log("Update result:", res);
         onClose();
       } catch (error) {
