@@ -42,7 +42,7 @@ export const patientApi = {
 
   updateMe: (data) => axiosClient.put("/patients/me", data),
 
-  getbyId: (id) => axiosClient.get(`/users/${id}`), // xoá user bệnh nhân
+  getbyId: (id) => axiosClient.get(`/users/${id}`),
 };
 
 /* ============================
@@ -50,8 +50,11 @@ export const patientApi = {
 ============================ */
 export const specApi = {
   getAll: () => axiosClient.get("/specializations"),
+
   addNew: (data) => axiosClient.post("/specializations", data),
+
   update: (code, data) => axiosClient.put(`/specializations/${code}`, data),
+
   delete: (id) => axiosClient.delete(`/specializations/${id}`),
 };
 
@@ -66,6 +69,12 @@ export const appointmentApi = {
   book: (data) => axiosClient.post("/appointments", data),
 
   getMyAppointments: () => axiosClient.get("/appointments"),
+
+  getBusySlots: (doctorId, date) => {
+    return axiosClient.get(`/appointments/busy-slots/${doctorId}`, {
+      params: { date }
+    });
+  }
 };
 
 export const aiApi = {

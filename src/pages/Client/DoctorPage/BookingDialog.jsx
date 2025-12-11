@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, Typography, Box, Divider, Grid, Chip, Alert
+  Button, TextField, Typography, Box, Divider, Grid, Alert, CircularProgress
 } from "@mui/material";
-import { appointmentApi } from "@services/api";
+import { appointmentApi } from "../../../services/api";
 import { AccessTime, CalendarMonth, EventNote } from "@mui/icons-material";
+import { format } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
 
 const DAYS_CONFIG = {
   "Sunday": { label: "Chủ Nhật", index: 0 },
@@ -17,12 +19,13 @@ const DAYS_CONFIG = {
 };
 
 const BookingDialog = ({ open, onClose, doctor }) => {
-    console.log(doctor);
   const [loading, setLoading] = useState(false);
-  const [selectedScheduleIndex, setSelectedScheduleIndex] = useState(null); 
+  const [checkingSlots, setCheckingSlots] = useState(false);
+  const [selectedScheduleIndex, setSelectedScheduleIndex] = useState(null);
   const [calculatedDate, setCalculatedDate] = useState("");
-  const [generatedSlots, setGeneratedSlots] = useState([]); 
-  const [selectedTime, setSelectedTime] = useState(null); 
+  const [generatedSlots, setGeneratedSlots] = useState([]);
+  const [busySlots, setBusySlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [symptoms, setSymptoms] = useState("");
 
   useEffect(() => {
@@ -30,7 +33,8 @@ const BookingDialog = ({ open, onClose, doctor }) => {
       setSelectedScheduleIndex(null);
       setCalculatedDate("");
       setGeneratedSlots([]);
-      setSelectedTime(null);
+      setBusySlots([]);
+      setSelectedSlot(null);
       setSymptoms("");
     }
   }, [open, doctor]);
@@ -38,16 +42,10 @@ const BookingDialog = ({ open, onClose, doctor }) => {
   const getNextDate = (dayName) => {
     const targetIndex = DAYS_CONFIG[dayName]?.index;
     if (targetIndex === undefined) return null;
-
     const date = new Date();
     const currentDayIndex = date.getDay();
-
     let daysToAdd = targetIndex - currentDayIndex;
-    if (daysToAdd <= 0) {
-    
-        daysToAdd += 7; 
-    }
-    
+    if (daysToAdd <= 0) daysToAdd += 7;
     date.setDate(date.getDate() + daysToAdd);
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -55,44 +53,74 @@ const BookingDialog = ({ open, onClose, doctor }) => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  const handleSelectSchedule = (index, schedule) => {
-    setSelectedScheduleIndex(index);
-    setSelectedTime(null); 
-    const nextDate = getNextDate(schedule.day);
-    setCalculatedDate(nextDate);
+  const isSlotBusy = (slotIsoTime) => {
+    if (!busySlots || busySlots.length === 0) return false;
+    const slotTime = new Date(slotIsoTime).getTime();
+    return busySlots.some(busy => {
+      const busyStart = new Date(busy.startTime).getTime();
+      return slotTime === busyStart;
+    });
+  };
 
+  const handleSelectSchedule = async (index, schedule) => {
+    setSelectedScheduleIndex(index);
+    setSelectedSlot(null);
+    setBusySlots([]);
+    const nextDateStr = getNextDate(schedule.day);
+    setCalculatedDate(nextDateStr);
+    setCheckingSlots(true);
+    try {
+      const res = await appointmentApi.getBusySlots(doctor.id || doctor._id, nextDateStr);
+      console.log(res);
+      const busyData = res.data?.data || res.data || [];
+      setBusySlots(busyData);
+    } catch (error) {
+      console.error("Failed to fetch busy slots", error);
+    } finally {
+      setCheckingSlots(false);
+    }
+
+    const doctorTimeZone = doctor.timeZone || 'Asia/Ho_Chi_Minh';
     const slots = [];
     const [startH, startM] = schedule.start.split(":").map(Number);
     const [endH, endM] = schedule.end.split(":").map(Number);
-    
-    let currentH = startH;
-    let currentM = startM;
+    let currentTotalMins = startH * 60 + startM;
+    const endTotalMins = endH * 60 + endM;
 
-    while (currentH < endH || (currentH === endH && currentM < endM)) {
-      const timeString = `${currentH.toString().padStart(2, '0')}:${currentM.toString().padStart(2, '0')}`;
-      slots.push(timeString);
-      currentM += 30;
-      if (currentM >= 60) { currentH += 1; currentM -= 60; }
+    while (currentTotalMins < endTotalMins) {
+      const h = Math.floor(currentTotalMins / 60);
+      const m = currentTotalMins % 60;
+      const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      const dateTimeString = `${nextDateStr} ${timeStr}`;
+
+      const dateObj = fromZonedTime(dateTimeString, doctorTimeZone);
+      const displayTime = format(dateObj, 'HH:mm');
+
+      slots.push({
+        display: displayTime,
+        iso: dateObj.toISOString()
+      });
+      currentTotalMins += 30;
     }
     setGeneratedSlots(slots);
   };
 
   const handleBook = async () => {
-    if (!selectedTime || !symptoms) return alert("Vui lòng nhập đủ thông tin!");
+    if (!selectedSlot || !symptoms) return alert("Vui lòng nhập đủ thông tin!");
     setLoading(true);
     try {
-      const dateTimeString = `${calculatedDate}T${selectedTime}:00`; 
-      const appointmentDate = new Date(dateTimeString).toISOString(); 
-
       await appointmentApi.book({
-        doctorId: doctor.id,
-        appointmentDate, 
-        symptoms
+        doctorId: doctor.id || doctor._id,
+        appointmentDate: selectedSlot.iso,
+        symptoms,
+        type: 'CHAT'
       });
+
       alert("Đặt lịch thành công!");
       onClose();
     } catch (error) {
-      alert("Lỗi: " + (error.response?.data?.message || "Thất bại"));
+      console.error(error);
+      alert("Lỗi: " + (error.response?.data?.message || "Đặt lịch thất bại"));
     } finally {
       setLoading(false);
     }
@@ -102,117 +130,125 @@ const BookingDialog = ({ open, onClose, doctor }) => {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ bgcolor: '#f8f9fa', borderBottom: '1px solid #eee' }}>
         <Box display="flex" alignItems="center" gap={1}>
-            <CalendarMonth color="primary"/> 
-            Đặt lịch khám
+          <CalendarMonth color="primary" />
+          Đặt lịch khám
         </Box>
         <Typography variant="body2" color="text.secondary">
-            Bác sĩ: <strong>{doctor?.fullName}</strong>
+          Bác sĩ: <strong>{doctor?.profile?.fullName || doctor?.fullName}</strong>
         </Typography>
       </DialogTitle>
-      
-      <DialogContent sx={{ pt: 3 }}>
-        
-        {/* === 1. DANH SÁCH CA LÀM VIỆC (BUTTONS) === */}
-        <Box mb={3} mt={1}>
-            <Typography variant="subtitle2" gutterBottom fontWeight={600} sx={{ display:'flex', gap:1 }}>
-                <EventNote fontSize="small" color="action"/> 1. Chọn buổi khám (Lịch tuần)
-            </Typography>
 
-            <Grid container spacing={1.5}>
-                {doctor?.schedules?.map((schedule, index) => {
-                    const isSelected = selectedScheduleIndex === index;
-                    const label = DAYS_CONFIG[schedule.day]?.label || schedule.day;
-                    
-                    return (
-                        <Grid item xs={6} sm={4} key={index}>
-                            <Button
-                                variant={isSelected ? "contained" : "outlined"}
-                                fullWidth
-                                onClick={() => handleSelectSchedule(index, schedule)}
-                                sx={{
-                                    borderRadius: 2,
-                                    height: '100%',
-                                    flexDirection: 'column',
-                                    py: 1.5,
-                                    textTransform: 'none',
-                                    // Logic "Màu xám": Nếu đã chọn cái khác thì cái này mờ đi
-                                    opacity: (selectedScheduleIndex !== null && !isSelected) ? 0.5 : 1,
-                                    borderColor: isSelected ? '' : '#e0e0e0',
-                                    backgroundColor: isSelected ? '' : '#fff',
-                                    color: isSelected ? '#fff' : '#333',
-                                    boxShadow: isSelected ? 3 : 0,
-                                    '&:hover': {
-                                        borderColor: '#2196f3',
-                                        backgroundColor: isSelected ? '' : '#f0f7ff',
-                                        opacity: 1
-                                    }
-                                }}
-                            >
-                                <Typography variant="body2" fontWeight={700}>{label}</Typography>
-                                <Typography variant="caption">{schedule.start} - {schedule.end}</Typography>
-                            </Button>
-                        </Grid>
-                    );
-                })}
-            </Grid>
-            
-            {(!doctor?.schedules || doctor.schedules.length === 0) && (
-                <Alert severity="warning" sx={{ mt: 1 }}>Bác sĩ chưa cập nhật lịch làm việc.</Alert>
-            )}
+      <DialogContent sx={{ pt: 3 }}>
+
+        <Box mb={3} mt={1}>
+          <Typography variant="subtitle2" gutterBottom fontWeight={600} sx={{ display: 'flex', gap: 1 }}>
+            <EventNote fontSize="small" color="action" />
+            1. Chọn buổi khám (Theo lịch Bác sĩ)
+          </Typography>
+
+          <Grid container spacing={1.5}>
+            {doctor?.schedules?.map((schedule, index) => {
+              const isSelected = selectedScheduleIndex === index;
+              const label = DAYS_CONFIG[schedule.day]?.label || schedule.day;
+              return (
+                <Grid item xs={6} sm={4} key={index}>
+                  <Button
+                    variant={isSelected ? "contained" : "outlined"}
+                    fullWidth
+                    onClick={() => handleSelectSchedule(index, schedule)}
+                    sx={{
+                      borderRadius: 2, height: '100%', flexDirection: 'column', py: 1.5, textTransform: 'none',
+                      borderColor: isSelected ? '' : '#e0e0e0',
+                      color: isSelected ? '#fff' : '#333',
+                      backgroundColor: isSelected ? '' : '#fff',
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight={700}>{label}</Typography>
+                    <Typography variant="caption" color={isSelected ? 'inherit' : 'text.secondary'}>
+                      {schedule.start} - {schedule.end}
+                    </Typography>
+                  </Button>
+                </Grid>
+              );
+            })}
+          </Grid>
         </Box>
 
         <Divider sx={{ my: 2 }} />
 
-        {/* === 2. CHỌN KHUNG GIỜ CỤ THỂ === */}
         {selectedScheduleIndex !== null && (
-            <Box mb={3} className="fade-in">
-                <Typography variant="subtitle2" gutterBottom fontWeight={600} sx={{ display:'flex', gap:1 }}>
-                    <AccessTime fontSize="small" color="action"/> 
-                    2. Chọn giờ khám (Ngày: {calculatedDate.split('-').reverse().join('/')})
-                </Typography>
+          <Box mb={3} className="fade-in">
+            <Typography variant="subtitle2" gutterBottom fontWeight={600} sx={{ display: 'flex', gap: 1 }}>
+              <AccessTime fontSize="small" color="action" />
+              2. Chọn giờ khám
+            </Typography>
 
-                <Grid container spacing={1.5}>
-                    {generatedSlots.map((time) => (
-                        <Grid item xs={3} key={time}>
-                            <Button
-                                variant={selectedTime === time ? "contained" : "outlined"}
-                                color="success" // Màu xanh lá cho giờ
-                                fullWidth
-                                onClick={() => setSelectedTime(time)}
-                                sx={{ 
-                                    borderRadius: 2, 
-                                    color: selectedTime === time ? '#fff' : '#2e7d32',
-                                    borderColor: selectedTime === time ? '' : '#a5d6a7'
-                                }}
-                            >
-                                {time}
-                            </Button>
-                        </Grid>
-                    ))}
-                </Grid>
-            </Box>
+            <Alert severity="info" sx={{ mb: 2, py: 0 }}>
+              Giờ bên dưới đã được chuyển đổi sang múi giờ của bạn.
+            </Alert>
+
+            {checkingSlots ? (
+              <Box display="flex" justifyContent="center" p={2}>
+                <CircularProgress size={24} />
+                <Typography variant="body2" sx={{ ml: 1 }}>Đang kiểm tra lịch trống...</Typography>
+              </Box>
+            ) : (
+              <Grid container spacing={1.5}>
+                {generatedSlots.map((slot, idx) => {
+                  const isSelected = selectedSlot?.iso === slot.iso;
+
+                  const isBusy = isSlotBusy(slot.iso);
+
+                  return (
+                    <Grid item xs={3} key={idx}>
+                      <Button
+                        variant={isSelected ? "contained" : "outlined"}
+                        disabled={isBusy}
+                        color={isBusy ? "inherit" : "success"}
+
+                        fullWidth
+                        onClick={() => setSelectedSlot(slot)}
+                        sx={{
+                          borderRadius: 2,
+                          color: isSelected ? '#fff' : (isBusy ? '#9e9e9e' : '#2e7d32'),
+                          borderColor: isSelected ? '' : (isBusy ? '#e0e0e0' : '#a5d6a7'),
+                          boxShadow: isSelected ? 2 : 0,
+                          textDecoration: isBusy ? 'line-through' : 'none',
+                          backgroundColor: isBusy ? '#f5f5f5' : ''
+                        }}
+                      >
+                        {slot.display}
+                      </Button>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            )}
+          </Box>
         )}
 
-        {/* === 3. NHẬP TRIỆU CHỨNG === */}
-        {selectedTime && (
-            <Box className="fade-in">
-                <Typography variant="subtitle2" gutterBottom fontWeight={600}>3. Mô tả triệu chứng *</Typography>
-                <TextField
-                    multiline rows={2} fullWidth
-                    placeholder="Ví dụ: Đau đầu, sốt cao..."
-                    value={symptoms}
-                    onChange={(e) => setSymptoms(e.target.value)}
-                />
-            </Box>
+        {selectedSlot && (
+          <Box className="fade-in">
+            <Typography variant="subtitle2" gutterBottom fontWeight={600}>
+              3. Mô tả triệu chứng *
+            </Typography>
+            <TextField
+              multiline rows={2} fullWidth
+              placeholder="Ví dụ: Đau đầu, sốt cao..."
+              value={symptoms}
+              onChange={(e) => setSymptoms(e.target.value)}
+            />
+          </Box>
         )}
 
       </DialogContent>
+
       <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
-        <Button onClick={onClose} color="inherit">Hủy</Button>
-        <Button 
-            onClick={handleBook} 
-            variant="contained" 
-            disabled={loading || !selectedTime || !symptoms}
+        <Button onClick={onClose} color="inherit">Hủy bỏ</Button>
+        <Button
+          onClick={handleBook}
+          variant="contained"
+          disabled={loading || !selectedSlot || !symptoms}
         >
           {loading ? "Đang xử lý..." : "Xác nhận đặt lịch"}
         </Button>

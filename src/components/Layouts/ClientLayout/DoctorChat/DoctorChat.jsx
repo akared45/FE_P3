@@ -4,7 +4,6 @@ import { Chat as ChatIcon } from "@mui/icons-material";
 import { socket } from "../../../../services/socket";
 import { appointmentApi } from "../../../../services/api";
 import { useChat } from "../../../../hooks/useChat";
-
 import PatientListSidebar from "./PatientListSidebar";
 import ChatWindow from "./ChatWindow";
 import PatientInfoPanel from "./PatientInfoPanel";
@@ -32,7 +31,6 @@ export default function DoctorChat() {
     };
   }, []);
 
-  // --- LOGIC: Fetch Data ---
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     setMyId(user.id || user._id);
@@ -46,7 +44,6 @@ export default function DoctorChat() {
     }
   }, [isOpen]);
 
-  // --- LOGIC: Auto Scroll ---
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
@@ -61,7 +58,6 @@ export default function DoctorChat() {
 
   return (
     <>
-      {/* 1. Floating Button */}
       {!isOpen && (
         <Fab
           color="primary"
@@ -78,20 +74,18 @@ export default function DoctorChat() {
       <Dialog
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        maxWidth={false} // 👈 1. Cho phép bung full chiều ngang
+        maxWidth={false} 
         PaperProps={{
           sx: {
-            width: '95vw',     // 👈 Chiếm 95% chiều ngang màn hình
-            height: '92vh',    // 👈 Chiếm 92% chiều cao màn hình
+            width: '95vw',    
+            height: '92vh',   
             maxWidth: '100%',
             borderRadius: 2,
-            overflow: 'hidden' // 👈 Cắt bỏ phần thừa
+            overflow: 'hidden' 
           }
         }}
       >
-        <Grid container sx={{ height: '100%', flexWrap: 'nowrap' }}> {/* noWrap để không bị rớt dòng */}
-
-          {/* CỘT TRÁI: Thu nhỏ còn 2.5 */}
+        <Grid container sx={{ height: '100%', flexWrap: 'nowrap' }}> 
           <Grid item sx={{ width: '20%', minWidth: '250px', borderRight: 1, borderColor: 'divider' }}>
             <PatientListSidebar
               appointments={appointments}
@@ -101,7 +95,6 @@ export default function DoctorChat() {
             />
           </Grid>
 
-          {/* CỘT GIỮA: Mở rộng ra (flex: 1 để chiếm hết khoảng trống còn lại) */}
           <Grid item sx={{ flex: 1, minWidth: '400px', display: 'flex', flexDirection: 'column' }}>
             <ChatWindow
               activeApp={activeApp}
@@ -117,7 +110,6 @@ export default function DoctorChat() {
             />
           </Grid>
 
-          {/* CỘT PHẢI: Thu nhỏ còn 2.5 hoặc cố định pixel */}
           <Grid item sx={{ width: '22%', minWidth: '280px', borderLeft: 1, borderColor: 'divider' }}>
             <PatientInfoPanel activeApp={activeApp} />
           </Grid>

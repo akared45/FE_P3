@@ -9,7 +9,9 @@ export default function DoctorListSidebar({
     activeId,
     setActiveId,
     isConnected
-}) {
+}) 
+{
+    console.log(appointments);
     return (
         <Grid item sx={{ width: '300px', borderRight: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column', bgcolor: '#fff' }}>
             <Box sx={{ p: 2.5, borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
@@ -56,7 +58,7 @@ export default function DoctorListSidebar({
                                 </Avatar>
                             </ListItemAvatar>
                             <ListItemText
-                                primary={app.doctorName}
+                                primary={app.doctor.name}
                                 secondary={
                                     <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
                                         {new Date(app.appointmentDate).toLocaleDateString('vi-VN')}

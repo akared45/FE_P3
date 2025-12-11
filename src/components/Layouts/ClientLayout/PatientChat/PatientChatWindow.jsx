@@ -21,16 +21,17 @@ export default function PatientChatWindow({
     messagesEndRef,
     onClose
 }) {
+    console.log(activeApp);
     return (
         <Grid item sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f0f2f5', height: '100%', overflow: 'hidden' }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', bgcolor: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '70px', flexShrink: 0 }}>
                 {activeApp ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
-                            {activeApp.doctorName.charAt(0)}
+                            {activeApp.doctor.name.charAt(0)}
                         </Avatar>
                         <Box>
-                            <Typography variant="subtitle1" fontWeight="bold">{activeApp.doctorName}</Typography>
+                            <Typography variant="subtitle1" fontWeight="bold">{activeApp.doctor.name}</Typography>
                             <Typography variant="caption" color="text.secondary">Chuyên khoa: Nội tổng hợp</Typography>
                         </Box>
                     </Box>
@@ -58,7 +59,6 @@ export default function PatientChatWindow({
                             const isMe = msg.senderId === myId;
                             return (
                                 <Box key={i} sx={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', mb: 1 }}>
-                                    {/* Avatar đối phương */}
                                     {!isMe && <Avatar sx={{ width: 32, height: 32, mr: 1.5, bgcolor: 'primary.main' }}>D</Avatar>}
 
                                     <Box sx={{ maxWidth: '70%' }}>
@@ -67,7 +67,6 @@ export default function PatientChatWindow({
                                             sx={{
                                                 p: 2,
                                                 borderRadius: 3,
-                                                // Màu sắc: Mình (Xanh), Bác sĩ (Trắng)
                                                 bgcolor: isMe ? 'primary.main' : 'white',
                                                 color: isMe ? 'white' : 'text.primary',
                                                 borderTopRightRadius: isMe ? 0 : 3,
@@ -80,13 +79,10 @@ export default function PatientChatWindow({
                                                 {msg.content}
                                             </Typography>
                                         </Paper>
-                                        {/* Thời gian */}
                                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: isMe ? 'right' : 'left', mt: 0.5, px: 1 }}>
                                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </Typography>
                                     </Box>
-
-                                    {/* Avatar của mình (Optional) */}
                                     {isMe && <Avatar sx={{ width: 32, height: 32, ml: 1.5, bgcolor: 'grey.300' }}><UserIcon sx={{ color: 'white' }} /></Avatar>}
                                 </Box>
                             );

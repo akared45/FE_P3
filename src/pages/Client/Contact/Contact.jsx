@@ -69,7 +69,6 @@ const Contact = () => {
     return (
         <Box sx={{ bgcolor: '#f4f6f8', minHeight: '100vh', pb: 10 }}>
 
-            {/* 1. HERO HEADER */}
             <Box
                 sx={{
                     bgcolor: 'white',

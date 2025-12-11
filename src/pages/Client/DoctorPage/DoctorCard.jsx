@@ -16,7 +16,6 @@ import {
 import { AccessTime, Star, WorkOutline } from "@mui/icons-material";
 import { getImageUrl } from "../../../utils/imageHelper";
 const DoctorCard = ({ doctor, onBook }) => {
-  console.log(doctor);
   const navigate = useNavigate();
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
