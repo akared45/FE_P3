@@ -71,7 +71,6 @@ const BookingDialog = ({ open, onClose, doctor }) => {
     setCheckingSlots(true);
     try {
       const res = await appointmentApi.getBusySlots(doctor.id || doctor._id, nextDateStr);
-      console.log(res);
       const busyData = res.data?.data || res.data || [];
       setBusySlots(busyData);
     } catch (error) {

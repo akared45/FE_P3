@@ -10,9 +10,7 @@ export const authApi = {
 
   refreshToken: () => axiosClient.post("/auth/refresh"),
 
-  logout: () => axiosClient.post("/auth/logout"),
-
-  getMe: () => axiosClient.get("/auth/me"),
+  logout: () => axiosClient.post("/auth/logout")
 };
 
 /* ============================
@@ -27,7 +25,7 @@ export const doctorApi = {
 
   delete: (id) => axiosClient.delete(`/admin/users/${id}`),
 
-  getById: (id) => axiosClient.get(`/doctors/${id}`),
+  getById: (id) => axiosClient.get(`/doctors/${id}`)
 };
 
 /* ============================
@@ -42,7 +40,9 @@ export const patientApi = {
 
   updateMe: (data) => axiosClient.put("/patients/me", data),
 
-  getbyId: (id) => axiosClient.get(`/users/${id}`),
+  getById: (id) => axiosClient.get(`/users/${id}`),
+
+  updateMe: (data) => axiosClient.put("/patients/me", data)
 };
 
 /* ============================

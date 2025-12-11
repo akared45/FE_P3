@@ -36,7 +36,6 @@ const Profile = () => {
         .email("Email không hợp lệ")
         .required("Vui lòng nhập email"),
       phone: Yup.string().required("Vui lòng nhập số điện thoại"),
-      address: Yup.string().required("Vui lòng nhập địa chỉ"),
     }),
     onSubmit: (values) => {
       console.log("Dữ liệu đã lưu:", values);
@@ -153,12 +152,6 @@ const Profile = () => {
                       <span className={styles.infoLabel}>Số Điện Thoại</span>
                       <span className={styles.infoValue}>
                         {formik.values.phone}
-                      </span>
-                    </div>
-                    <div className={styles.infoItem}>
-                      <span className={styles.infoLabel}>Địa Chỉ</span>
-                      <span className={styles.infoValue}>
-                        {formik.values.address}
                       </span>
                     </div>
                   </div>

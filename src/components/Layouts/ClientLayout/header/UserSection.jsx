@@ -9,7 +9,11 @@ const UserSection = ({ user, isLoggedIn, onLogoutRequest }) => {
 
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseUserMenu = () => setAnchorElUser(null);
-
+  const getAvatarUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url;
+    return "http://localhost:3000" + url;
+  };
   const userInitials = user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U";
 
   return (
@@ -33,15 +37,15 @@ const UserSection = ({ user, isLoggedIn, onLogoutRequest }) => {
 
           <Tooltip title="Tài khoản">
             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-              <Avatar 
-                alt={user?.fullName} src={user?.avatarUrl} 
+              <Avatar
+                alt={user?.fullName} src={getAvatarUrl(user.avatarUrl)}
                 sx={{ bgcolor: 'primary.main', border: '2px solid white', boxShadow: '0 0 0 2px #e3f2fd' }}
               >
                 {userInitials}
               </Avatar>
             </IconButton>
           </Tooltip>
-          
+
           <Menu
             sx={{ mt: '45px' }}
             anchorEl={anchorElUser}
@@ -51,18 +55,18 @@ const UserSection = ({ user, isLoggedIn, onLogoutRequest }) => {
             transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             PaperProps={{
               elevation: 3,
-              sx: { 
+              sx: {
                 minWidth: 200, borderRadius: 3, overflow: 'visible', mt: 1.5,
                 '&:before': { content: '""', display: 'block', position: 'absolute', top: 0, right: 14, width: 10, height: 10, bgcolor: 'background.paper', transform: 'translateY(-50%) rotate(45deg)', zIndex: 0 },
               }
             }}
           >
             <Box sx={{ px: 2, py: 1.5 }}>
-                <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>{user.fullName}</Typography>
-                <Typography variant="body2" color="text.secondary" noWrap sx={{ fontSize: '0.8rem' }}>{user.email}</Typography>
+              <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>{user.fullName}</Typography>
+              <Typography variant="body2" color="text.secondary" noWrap sx={{ fontSize: '0.8rem' }}>{user.email}</Typography>
             </Box>
             <Divider />
-            
+
             {settings.map((item) => (
               <MenuItem
                 key={item.id}
@@ -75,7 +79,7 @@ const UserSection = ({ user, isLoggedIn, onLogoutRequest }) => {
                     onLogoutRequest();
                   }
                 }}
-                sx={{ 
+                sx={{
                   py: 1, color: item.danger ? 'error.main' : 'text.primary',
                   '&:hover': { bgcolor: item.danger ? 'error.lighter' : 'grey.100' }
                 }}

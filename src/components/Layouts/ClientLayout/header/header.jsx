@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../../../providers/AuthProvider";
 import { AppBar, Toolbar, Container } from "@mui/material";
 import Logo from "./Logo";
@@ -6,8 +6,9 @@ import DesktopMenu from "./DesktopMenu";
 import MobileMenu from "./MobileMenu";
 import UserSection from "./UserSection";
 import Modal from "../../../ui/modal";
-
+import { patientApi } from "../../../../services/api";
 const Header = () => {
+  const [profile, setProfile] = useState(null);
   const { user, logout } = useContext(AuthContext);
   const [openLogoutModal, setOpenLogoutModal] = useState(false);
 
@@ -15,6 +16,20 @@ const Header = () => {
     logout();
     setOpenLogoutModal(false);
   };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.id) return;
+
+      try {
+        const res = await patientApi.getById(user.id);
+        setProfile(res.data);
+      } catch (error) {
+        console.error("Lỗi lấy profile:", error);
+      }
+    };
+    fetchProfile();
+  }, [user?.id]);
 
   return (
     <>
@@ -29,7 +44,7 @@ const Header = () => {
             <Logo isMobile={true} />
             <DesktopMenu />
             <UserSection
-              user={user}
+              user={profile}
               isLoggedIn={!!user}
               onLogoutRequest={() => setOpenLogoutModal(true)}
             />
