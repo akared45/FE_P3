@@ -22,6 +22,11 @@ export default function PatientChatWindow({
     onClose
 }) {
     console.log(activeApp);
+    const getAvatarUrl = (url) => {
+        if (!url) return "";
+        if (url.startsWith("http")) return url;
+        return "http://localhost:3000" + url;
+    };
     return (
         <Grid item sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f0f2f5', height: '100%', overflow: 'hidden' }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', bgcolor: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '70px', flexShrink: 0 }}>
@@ -59,7 +64,9 @@ export default function PatientChatWindow({
                             const isMe = msg.senderId === myId;
                             return (
                                 <Box key={i} sx={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', mb: 1 }}>
-                                    {!isMe && <Avatar sx={{ width: 32, height: 32, mr: 1.5, bgcolor: 'primary.main' }}>D</Avatar>}
+                                    {!isMe &&
+                                        <Avatar src={getAvatarUrl(activeApp.doctor.avatar)}
+                                            sx={{ width: 32, height: 32, mr: 1.5, bgcolor: 'primary.main' }}>D</Avatar>}
 
                                     <Box sx={{ maxWidth: '70%' }}>
                                         <Paper
@@ -83,7 +90,7 @@ export default function PatientChatWindow({
                                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </Typography>
                                     </Box>
-                                    {isMe && <Avatar sx={{ width: 32, height: 32, ml: 1.5, bgcolor: 'grey.300' }}><UserIcon sx={{ color: 'white' }} /></Avatar>}
+                                    {isMe && <Avatar src={getAvatarUrl(activeApp.patient.avatar)} sx={{ width: 32, height: 32, ml: 1.5, bgcolor: 'grey.300' }}><UserIcon sx={{ color: 'white' }} /></Avatar>}
                                 </Box>
                             );
                         })}

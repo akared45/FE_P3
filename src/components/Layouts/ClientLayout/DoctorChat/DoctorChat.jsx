@@ -36,8 +36,9 @@ export default function DoctorChat() {
     setMyId(user.id || user._id);
     if (isOpen) {
       appointmentApi.getMyAppointments().then((res) => {
-        const validApps = res.data.filter(a =>
-          ['confirmed', 'in_progress', 'completed'].includes(a.status)
+        console.log(res)
+        const validApps = res.data.data.filter(a =>
+          ['confirmed', 'in_progress', 'completed', 'pending'].includes(a.status)
         );
         setAppointments(validApps);
       });

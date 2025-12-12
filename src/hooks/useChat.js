@@ -11,7 +11,6 @@ export const useChat = (appointmentId) => {
     if (!socket.connected) {
       const token = localStorage.getItem("accessToken");
       if (token) {
-        console.log("🔌 UseChat: Kích hoạt kết nối...");
         socket.auth = { token };
         socket.connect();
       }
@@ -28,17 +27,14 @@ export const useChat = (appointmentId) => {
         setLoading(false);
       }
     };
-    console.log(`🔌 UseChat: Requesting Join ${appointmentId}`);
     socket.emit("join_appointment", appointmentId);
     initChat();
     const onConnect = () => {
-      console.log("Re-connected -> Re-joining room");
       socket.emit("join_appointment", appointmentId);
     };
     socket.on("connect", onConnect);
     return () => {
       socket.off("connect", onConnect);
-      console.log(`👋 UseChat: Leaving ${appointmentId}`);
       socket.emit("leave_appointment", appointmentId);
     };
   }, [appointmentId]);
